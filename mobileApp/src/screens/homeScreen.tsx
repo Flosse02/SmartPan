@@ -24,6 +24,8 @@ function StatCard({ value, label, accent }: { value: string | number; label: str
 
 function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
+  const {as: HeadIcon, name: headIcon} = ICONS.HEAD;
+  const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   return (
@@ -35,7 +37,19 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
       <View style={s.featuredBody}>
         <Text style={s.featuredTitle} numberOfLines={1}>{recipe.title}</Text>
         <Text style={s.featuredMeta}>
-          {[fmtTime(total) && `⏱ ${fmtTime(total)}`, `👤 ${recipe.servings}`, ...recipe.tags.slice(0, 2)].filter(Boolean).join(' · ')}
+          {[fmtTime(total) && ( <Text key="time"><TimerIcon name={timerIcon} size={10} />{fmtTime(total)} </Text>),
+            (
+              <Text key="servings"> <HeadIcon name={headIcon} size={10} /> {recipe.servings}  </Text>
+            ),
+
+            ...recipe.tags.slice(0, 2).map((tag, i) => ( <Text key={`tag-${i}`}>{tag}</Text> )),
+          ]
+            .filter(Boolean)
+            .reduce((acc: any[], item, i) => {
+              if (i > 0) acc.push(<Text key={`dot-${i}`}> · </Text>);
+              acc.push(item);
+              return acc;
+            }, [])}
         </Text>
       </View>
     </TouchableOpacity>
@@ -44,6 +58,7 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
 
 function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
+  const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   return (
@@ -54,7 +69,7 @@ function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) 
       }
       <View style={s.miniBody}>
         <Text style={s.miniTitle} numberOfLines={2}>{recipe.title}</Text>
-        {total > 0 && <Text style={s.miniMeta}>{fmtTime(total)}</Text>}
+        {total > 0 && <Text style={s.miniMeta}><TimerIcon name={timerIcon} size={10} />{fmtTime(total)}</Text>}
       </View>
     </TouchableOpacity>
   );

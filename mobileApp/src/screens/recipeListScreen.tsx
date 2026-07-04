@@ -16,13 +16,14 @@ function fmtTime(min?: number) {
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
   const {as: HeadIcon, name: headIcon} = ICONS.HEAD;
   const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
+  const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.7}>
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.cardImage} />
-        : <View style={[s.cardImage, s.cardImagePlaceholder]}><Text style={s.cardImageEmoji}>🍳</Text></View>
+        : <View style={[s.cardImage, s.cardImagePlaceholder]}><Text style={s.cardImageEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text></View>
       }
       <View style={s.cardBody}>
         <Text style={s.cardTitle} numberOfLines={2}>{recipe.title}</Text>
@@ -111,7 +112,7 @@ export default function RecipeListScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   container:            { flex: 1, backgroundColor: '#0f0f13' },
-  header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12 },
+  header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
   headerTitle:          { fontSize: 22, fontWeight: '700', color: '#f0f0f0', letterSpacing: -0.5 },
   headerRight:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
   dot:                  { width: 7, height: 7, borderRadius: 4 },
