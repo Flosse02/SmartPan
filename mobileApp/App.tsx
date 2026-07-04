@@ -15,6 +15,9 @@ import RecipeListScreen  from './src/screens/recipeListScreen';
 import RecipeDetailScreen from './src/screens/recipeDetailScreen';
 import CookingModeScreen from './src/screens/cookingModeScreen';
 import AddRecipeScreen   from './src/screens/addRecipeScreen';
+import { ICONS } from './src/constants/icons';
+import { getBottomTabsIcon } from './src/util/getBottomTabsIcon';
+import { ROUTES } from './src/constants/routes';
 
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -22,7 +25,7 @@ const Tab   = createBottomTabNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({route}) => ({
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#0f0f13',
@@ -33,17 +36,19 @@ function MainTabs() {
         tabBarActiveTintColor:   '#6366f1',
         tabBarInactiveTintColor: '#444',
         tabBarLabelStyle: { fontSize: 11, marginBottom: 2 },
-      }}
+        tabBarIcon: ({color, size, focused}) =>
+          getBottomTabsIcon(route.name, focused, color),
+      })}
     >
       <Tab.Screen
-        name="Home"
+        name={ROUTES.HOME}
         component={HomeScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }}
+        options={{ title: 'Home' }}
       />
       <Tab.Screen
-        name="RecipeList"
+        name={ROUTES.RECIPES}
         component={RecipeListScreen}
-        options={{ title: 'Recipes', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📖</Text> }}
+        options={{ title: 'Recipes' }}
       />
     </Tab.Navigator>
   );

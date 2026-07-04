@@ -56,9 +56,7 @@ function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) 
 }
 
 export default function HomeScreen({ navigation }: any) {
-  const { recipes, remove, save, update } = useRecipes()
-  const connected = true
-  const loading = false
+  const { recipes, remove, save, update, connected, loading } = useRecipes();
   const [query, setQuery] = useState('');
 
   const allTags   = Array.from(new Set(recipes.flatMap(r => r.tags)));
