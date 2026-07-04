@@ -31,7 +31,7 @@ export default function CookingModeScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={s.container}>
+    <View style={s.container}>
       {/* Header */}
       <View style={s.header}>
         <Text style={s.title} numberOfLines={1}>{recipe.title}</Text>
@@ -53,7 +53,7 @@ export default function CookingModeScreen({ route, navigation }: any) {
               activeOpacity={0.7}
             >
               <Text style={[s.ingredientCheck, checked.has(i) && s.ingredientCheckDone]}>
-                {checked.has(i) ? '✓' : '○'}
+                {checked.has(i) ? <TickIcon name={tickIcon} size={10} color={"green"}/> : '○'}
               </Text>
               <Text style={[s.ingredientText, checked.has(i) && s.ingredientTextDone]}>
                 <Text style={s.ingredientAmount}>
@@ -89,19 +89,19 @@ export default function CookingModeScreen({ route, navigation }: any) {
           onPress={() => setStep(s => Math.max(0, s - 1))}
           disabled={step === 0}
         >
-          <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={"#444"} /> Prev</Text>
+          <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={ step === 0 ? '#444' : 'white' } /> Prev</Text>
         </TouchableOpacity>
 
         {step < total - 1
           ? <TouchableOpacity style={[s.navBtn, s.navBtnPrimary]} onPress={() => setStep(s => s + 1)}>
-              <Text style={s.navBtnTextPrimary}><ArrowRightIcon name={arrowRightIcon} size={24} color={"#444"} /> Next</Text>
+              <Text style={s.navBtnTextPrimary}>Next <ArrowRightIcon name={arrowRightIcon} size={24} color={"white"} /></Text>
             </TouchableOpacity>
           : <TouchableOpacity style={[s.navBtn, s.navBtnDone]} onPress={() => navigation.goBack()}>
-              <Text style={s.navBtnTextPrimary}>Done <TickIcon name={tickIcon} size={24} color={"#444"}/></Text>
+              <Text style={s.navBtnTextPrimary}>Done <TickIcon name={tickIcon} size={24} color={"white"}/></Text>
             </TouchableOpacity>
         }
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -116,7 +116,7 @@ const s = StyleSheet.create({
   scrollContent:        { padding: 16, gap: 20 },
   sectionLabel:         { fontSize: 10, color: '#555', textTransform: 'uppercase', letterSpacing: 1.5 },
   ingredientsList:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  ingredient:           { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#1a1a1f', borderWidth: 0.5, borderColor: '#2a2a2f', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  ingredient:           { flexDirection: 'row', alignItems: 'center', width: '100%', gap: 6, backgroundColor: '#1a1a1f', borderWidth: 0.5, borderColor: '#2a2a2f', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
   ingredientChecked:    { backgroundColor: 'rgba(76,175,125,0.08)', borderColor: '#4caf7d', opacity: 0.5 },
   ingredientCheck:      { fontSize: 11, color: '#555' },
   ingredientCheckDone:  { color: '#4caf7d' },
@@ -136,7 +136,7 @@ const s = StyleSheet.create({
   navBtnDisabled:       { opacity: 0.3 },
   navBtnPrimary:        { backgroundColor: '#6366f1', borderColor: '#6366f1' },
   navBtnDone:           { backgroundColor: '#4caf7d', borderColor: '#4caf7d' },
-  navBtnText:           { fontSize: 14, color: '#888', fontWeight: '500' },
+  navBtnText:           { fontSize: 14, color: 'white', fontWeight: '500' },
   navBtnTextDisabled:   { color: '#444' },
   navBtnTextPrimary:    { fontSize: 14, color: '#fff', fontWeight: '600' },
 });

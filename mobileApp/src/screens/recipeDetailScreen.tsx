@@ -58,9 +58,9 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       </TouchableOpacity>
 
       {/* Cook button */}
-      {/* <TouchableOpacity style={s.cookBtn} onPress={() => navigation.navigate('CookingMode', { recipe, servings })}>
+      <TouchableOpacity style={s.cookBtn} onPress={() => navigation.navigate('CookingMode', { recipe, servings })}>
         <Text style={s.cookBtnText}>Cook</Text>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
         {/* Title & meta */}
@@ -122,7 +122,7 @@ const s = StyleSheet.create({
   heroEmoji:        { fontSize: 60 },
   back:             { position: 'absolute', top: 52, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   backText:         { color: '#fff', fontSize: 18 },
-  cookBtn:          { position: 'absolute', top: 52, right: 16, backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  cookBtn:          { position: 'absolute', bottom: 4, backgroundColor: '#6365f1', borderRadius: 8, paddingHorizontal: "30%", paddingVertical: 8, alignSelf: 'center', zIndex: 999, elevation: 10 },
   cookBtnText:      { color: '#fff', fontSize: 13, fontWeight: '600' },
   deleteBtn:        { position: 'absolute', top: 52, right: 16, backgroundColor: '#ef4444', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
   deleteBtnText:    { color: '#fff', fontSize: 13, fontWeight: '600' },
