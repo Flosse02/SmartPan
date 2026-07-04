@@ -204,22 +204,21 @@ export const api = {
       /^pro tip/i,
     ];
 
-    // Pick only first real instruction set
-    const instructionSet =
-      data.analyzedInstructions?.find((g: any) => g.steps?.length > 1) ??
-      data.analyzedInstructions?.[0];
+    const steps: { text: string }[] = [];
+    const notes: string[] = [];
 
-    const steps =
-      instructionSet?.steps
-        ?.map((s: any) => ({
-          text: (s.step || '').trim(),
-        }))
-        .filter((s: any) => {
-          if (!s.text) return false;
-          return !notePatterns.some(p =>
-            p.test(s.text.toLowerCase())
-          );
-        }) ?? [];
+    data.analyzedInstructions?.forEach((group: any) => {
+      (group.steps ?? []).forEach((s: any) => {
+        const text = (s.step || '').trim();
+        if (!text) return;
+
+        if (notePatterns.some(p => p.test(text))) {
+          notes.push(text);
+        } else {
+          steps.push({ text });
+        }
+      });
+    });
 
     return {
       title: data.title,
@@ -240,7 +239,7 @@ export const api = {
         }) ?? [],
 
       steps,
-
+      notes,
       tags: data.dishTypes ?? [],
     };
   },

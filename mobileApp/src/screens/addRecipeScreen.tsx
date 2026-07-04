@@ -12,6 +12,7 @@ const EMPTY = {
   tags: '', image: '',
   ingredients: [{ amount: '', unit: '', name: '' }],
   steps: [{ text: '' }],
+  notes: [{ text: '' }],
 };
 
 export default function AddRecipeScreen({ navigation, route }: any) {
@@ -37,6 +38,10 @@ export default function AddRecipeScreen({ navigation, route }: any) {
     setForm(f => { const a = [...f.steps]; a[i] = { text: val }; return { ...f, steps: a }; });
   };
 
+  const setNote = (i: number, val: string) => {
+    setForm(f => { const a = [...f.notes]; a[i] = { text: val }; return { ...f, notes: a }; });
+  };
+
   useEffect(() => {
     if (!isEditing || !editingRecipe) return;
 
@@ -60,6 +65,9 @@ export default function AddRecipeScreen({ navigation, route }: any) {
       steps: editingRecipe.steps?.length
         ? editingRecipe.steps.map((s: any) => ({ text: s.text }))
         : [{ text: '' }],
+      notes: editingRecipe.notes?.length
+        ? editingRecipe.notes.map((n: any) => ({ text: n.text }))
+        : [{ text: '' }],
     });
   }, [isEditing, editingRecipe]);
 
@@ -81,6 +89,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
           ? data.ingredients.map((i: any) => ({ amount: i.amount != null ? String(i.amount) : '', unit: i.unit ?? '', name: i.name }))
           : [{ amount: '', unit: '', name: '' }],
         steps: data.steps?.length ? data.steps.map((s: any) => ({ text: s.text })) : [{ text: '' }],
+        notes: data.notes?.length ? data.notes.map((n: any) => ({ text: n.text })) : [{ text: '' }],
       });
       setTab('manual');
     } catch (e: any) {
@@ -115,6 +124,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
             name: i.name.trim(),
           })),
         steps: form.steps.filter(s => s.text.trim()),
+        notes: form.notes?.filter(n => n.text.trim()),
       };
 
       if (isEditing && editingRecipe) {
@@ -200,6 +210,20 @@ export default function AddRecipeScreen({ navigation, route }: any) {
           ))}
           <TouchableOpacity style={s.addRowBtn} onPress={() => setForm(f => ({ ...f, steps: [...f.steps, { text: '' }] }))}>
             <Text style={s.addRowBtnText}><AddIcon name={addIcon} size={16} /> Step</Text>
+          </TouchableOpacity>
+
+          <Text style={s.sectionLabel}>Notes</Text>
+          {form.notes.map((note, i) => (
+            <View key={i} style={s.stepRow}>
+              <View style={s.stepNum}><Text style={s.stepNumText}>{i + 1}</Text></View>
+              <TextInput style={[s.input, s.textarea, { flex: 1 }]} placeholder={`Note ${i + 1}…`} placeholderTextColor="#555" value={note.text} onChangeText={v => setNote(i, v)} multiline />
+              <TouchableOpacity onPress={() => setForm(f => ({ ...f, notes: f.notes.filter((_, j) => j !== i) }))} style={s.removeBtn}>
+                <Text style={s.removeBtnText}><CloseIcon name={closeIcon} size={24} color={"#444"} /></Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity style={s.addRowBtn} onPress={() => setForm(f => ({ ...f, notes: [...f.notes, { text: '' }] }))}>
+            <Text style={s.addRowBtnText}><AddIcon name={addIcon} size={16} /> Note</Text>
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />

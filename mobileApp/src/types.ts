@@ -8,6 +8,10 @@ export interface Step {
   text: string;
 }
 
+export interface Note {
+  text: string;
+}
+
 export interface Recipe {
   id:           string;
   title:        string;
@@ -19,6 +23,7 @@ export interface Recipe {
   tags:         string[];
   ingredients:  Ingredient[];
   steps:        Step[];
+  notes:        Note[];
   source?:      string;
   createdAt:    string;
 }
