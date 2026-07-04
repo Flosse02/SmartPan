@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView,
 } from 'react-native';
 import { Recipe } from '../types';
+import { ICONS } from '../constants/icons';
 
 function scaleAmount(amount: number | null, base: number, current: number) {
   if (amount == null) return '';
@@ -15,6 +16,11 @@ export default function CookingModeScreen({ route, navigation }: any) {
   const [step,    setStep]    = useState(0);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const total = recipe.steps.length;
+
+  const {as: CloseIcon, name: closeIcon} = ICONS.CLOSE;
+  const {as: ArrowLeftIcon, name: arrowLeftIcon} = ICONS.ARROW_LEFT;
+  const {as: ArrowRightIcon, name: arrowRightIcon} = ICONS.ARROW_RIGHT;
+  const {as: TickIcon, name: tickIcon} = ICONS.TICK;
 
   const toggle = (i: number) => {
     setChecked(prev => {
@@ -31,7 +37,7 @@ export default function CookingModeScreen({ route, navigation }: any) {
         <Text style={s.title} numberOfLines={1}>{recipe.title}</Text>
         <Text style={s.progress}>{step + 1} / {total}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-          <Text style={s.closeBtnText}>✕</Text>
+          <CloseIcon name={closeIcon} size={24} color={"#444"} />
         </TouchableOpacity>
       </View>
 
@@ -83,15 +89,15 @@ export default function CookingModeScreen({ route, navigation }: any) {
           onPress={() => setStep(s => Math.max(0, s - 1))}
           disabled={step === 0}
         >
-          <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}>← Prev</Text>
+          <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={"#444"} /> Prev</Text>
         </TouchableOpacity>
 
         {step < total - 1
           ? <TouchableOpacity style={[s.navBtn, s.navBtnPrimary]} onPress={() => setStep(s => s + 1)}>
-              <Text style={s.navBtnTextPrimary}>Next →</Text>
+              <Text style={s.navBtnTextPrimary}><ArrowRightIcon name={arrowRightIcon} size={24} color={"#444"} /> Next</Text>
             </TouchableOpacity>
           : <TouchableOpacity style={[s.navBtn, s.navBtnDone]} onPress={() => navigation.goBack()}>
-              <Text style={s.navBtnTextPrimary}>Done ✓</Text>
+              <Text style={s.navBtnTextPrimary}>Done <TickIcon name={tickIcon} size={24} color={"#444"}/></Text>
             </TouchableOpacity>
         }
       </View>

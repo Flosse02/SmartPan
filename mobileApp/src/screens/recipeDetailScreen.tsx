@@ -5,6 +5,7 @@ import {
 import { Recipe } from '../types';
 import { api } from '../api';
 import { useRecipes } from '../context/RecipesContext';
+import { ICONS } from '../constants/icons';
 
 function scaleAmount(amount: number | null, base: number, current: number) {
   if (amount == null) return '';
@@ -23,6 +24,11 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const { recipes, remove, save, update } = useRecipes()
   const [servings, setServings] = useState(recipe.servings);
 
+  const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
+  const {as: ArrowLeftIcon, name: arrowLeftIcon} = ICONS.ARROW_LEFT;
+  const {as: AddIcon, name: addIcon} = ICONS.ADD;
+  const {as: MinusIcon, name: minusIcon} = ICONS.MINUS;
+
   const handleDelete = async () => {
     try {
       await remove(recipe.id);
@@ -38,12 +44,12 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       {/* Header image */}
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.hero} />
-        : <View style={[s.hero, s.heroPlaceholder]}><Text style={s.heroEmoji}>🍳</Text></View>
+        : <View style={[s.hero, s.heroPlaceholder]}><Text style={s.heroEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text></View>
       }
 
       {/* Back button */}
       <TouchableOpacity style={s.back} onPress={() => navigation.goBack()}>
-        <Text style={s.backText}>←</Text>
+        <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} /></Text>
       </TouchableOpacity>
 
       {/* Delete button */}
@@ -76,11 +82,11 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           <Text style={s.sectionLabel}>Ingredients</Text>
           <View style={s.servingsControl}>
             <TouchableOpacity onPress={() => setServings(s => Math.max(1, s - 1))} style={s.servingsBtn}>
-              <Text style={s.servingsBtnText}>−</Text>
+              <Text style={s.servingsBtnText}><MinusIcon name={minusIcon} size={16} /></Text>
             </TouchableOpacity>
             <Text style={s.servingsVal}>{servings}</Text>
             <TouchableOpacity onPress={() => setServings(s => s + 1)} style={s.servingsBtn}>
-              <Text style={s.servingsBtnText}>+</Text>
+              <Text style={s.servingsBtnText}><AddIcon name={addIcon} size={16} /></Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -24,6 +24,16 @@ export const ICONS = {
   HOME: {as: MaterialCommunityIcons , name: 'home'},
   RECIPES_OUTLINED: {as: MaterialCommunityIcons , name: 'book-open-outline'},
   RECIPES: {as: MaterialCommunityIcons , name: 'book-open'},
+  ARROW_RIGHT: {as: MaterialCommunityIcons , name: 'arrow-right'},
+  ARROW_LEFT: {as: MaterialCommunityIcons , name: 'arrow-left'},
+  SEARCH: {as: MaterialCommunityIcons , name: 'magnify'},
+  IMAGE_PLACEHOLDER: {as: MaterialCommunityIcons , name: 'image-outline'},
+  CLOSE: {as: MaterialCommunityIcons , name: 'close'},
+  ADD: {as: MaterialCommunityIcons , name: 'plus'},
+  MINUS: {as: MaterialCommunityIcons , name: 'minus'},
+  TICK: {as: MaterialCommunityIcons , name: 'check'},
+  HEAD: {as: MaterialIcons , name: 'person'},
+  TIMER: {as: MaterialIcons , name: 'timer'},
 } as const;
 
 export type IconConstType = typeof ICONS;

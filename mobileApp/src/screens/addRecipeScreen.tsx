@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { api } from '../api';
+import { ICONS } from '../constants/icons';
 
 const EMPTY = {
   title: '', description: '', servings: '4', prepTime: '', cookTime: '',
@@ -20,6 +21,10 @@ export default function AddRecipeScreen({ navigation }: any) {
   const [url,       setUrl]       = useState('');
   const [importing, setImporting] = useState(false);
   const [saving,    setSaving]    = useState(false);
+
+  const {as: AddIcon, name: addIcon} = ICONS.ADD;
+  const {as: CloseIcon, name: closeIcon} = ICONS.CLOSE;
+  const {as: ArrowLeftIcon, name: arrowLeftIcon} = ICONS.ARROW_LEFT;
 
   const setIng = (i: number, field: string, val: string) => {
     setForm(f => { const a = [...f.ingredients]; a[i] = { ...a[i], [field]: val }; return { ...f, ingredients: a }; });
@@ -92,7 +97,7 @@ export default function AddRecipeScreen({ navigation }: any) {
     <View style={s.container}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backText}>←</Text>
+          <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={"#444"} /></Text>
         </TouchableOpacity>
         <View style={s.tabs}>
           <TouchableOpacity style={[s.tab, tab === 'manual' && s.tabActive]} onPress={() => setTab('manual')}>
@@ -134,12 +139,12 @@ export default function AddRecipeScreen({ navigation }: any) {
               <TextInput style={[s.input, s.ingUnit]} placeholder="Unit" placeholderTextColor="#555" value={ing.unit}   onChangeText={v => setIng(i, 'unit',   v)} />
               <TextInput style={[s.input, s.ingName]} placeholder="Ingredient" placeholderTextColor="#555" value={ing.name} onChangeText={v => setIng(i, 'name', v)} />
               <TouchableOpacity onPress={() => setForm(f => ({ ...f, ingredients: f.ingredients.filter((_, j) => j !== i) }))} style={s.removeBtn}>
-                <Text style={s.removeBtnText}>✕</Text>
+                <Text style={s.removeBtnText}><CloseIcon name={closeIcon} size={24} color={"#444"} /></Text>
               </TouchableOpacity>
             </View>
           ))}
           <TouchableOpacity style={s.addRowBtn} onPress={() => setForm(f => ({ ...f, ingredients: [...f.ingredients, { amount: '', unit: '', name: '' }] }))}>
-            <Text style={s.addRowBtnText}>+ Ingredient</Text>
+            <Text style={s.addRowBtnText}><AddIcon name={addIcon} size={16} /> Ingredient</Text>
           </TouchableOpacity>
 
           <Text style={s.sectionLabel}>Steps</Text>
@@ -148,12 +153,12 @@ export default function AddRecipeScreen({ navigation }: any) {
               <View style={s.stepNum}><Text style={s.stepNumText}>{i + 1}</Text></View>
               <TextInput style={[s.input, s.textarea, { flex: 1 }]} placeholder={`Step ${i + 1}…`} placeholderTextColor="#555" value={step.text} onChangeText={v => setStep(i, v)} multiline />
               <TouchableOpacity onPress={() => setForm(f => ({ ...f, steps: f.steps.filter((_, j) => j !== i) }))} style={s.removeBtn}>
-                <Text style={s.removeBtnText}>✕</Text>
+                <Text style={s.removeBtnText}><CloseIcon name={closeIcon} size={24} color={"#444"} /></Text>
               </TouchableOpacity>
             </View>
           ))}
           <TouchableOpacity style={s.addRowBtn} onPress={() => setForm(f => ({ ...f, steps: [...f.steps, { text: '' }] }))}>
-            <Text style={s.addRowBtnText}>+ Step</Text>
+            <Text style={s.addRowBtnText}><AddIcon name={addIcon} size={16} /> Step</Text>
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />

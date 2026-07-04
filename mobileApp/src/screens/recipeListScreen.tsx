@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
+import { ICONS } from '../constants/icons';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -13,6 +14,9 @@ function fmtTime(min?: number) {
 }
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const {as: HeadIcon, name: headIcon} = ICONS.HEAD;
+  const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
+
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.7}>
@@ -23,8 +27,8 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
       <View style={s.cardBody}>
         <Text style={s.cardTitle} numberOfLines={2}>{recipe.title}</Text>
         <View style={s.cardMeta}>
-          {total > 0 && <Text style={s.cardMetaText}>⏱ {fmtTime(total)}</Text>}
-          <Text style={s.cardMetaText}>👤 {recipe.servings}</Text>
+          {total > 0 && <Text style={s.cardMetaText}><TimerIcon name={timerIcon} size={10} /> {fmtTime(total)}</Text>}
+          <Text style={s.cardMetaText}><HeadIcon name={headIcon} size={10} /> {recipe.servings}</Text>
         </View>
         {recipe.tags.length > 0 && (
           <View style={s.tagRow}>
@@ -42,6 +46,10 @@ export default function RecipeListScreen({ navigation }: any) {
   const { recipes, remove, fetch, loading, error, connected } = useRecipes()
   const [query, setQuery] = useState('');
 
+  const {as: AddIcon, name: addIcon} = ICONS.ADD;
+  const {as: SearchIcon, name: searchIcon} = ICONS.SEARCH;
+  const {as: CloseIcon, name: closeIcon} = ICONS.CLOSE;
+
   const filtered = query
     ? recipes.filter(r => r.title.toLowerCase().includes(query.toLowerCase()) || r.tags.some(t => t.toLowerCase().includes(query.toLowerCase())))
     : recipes;
@@ -54,14 +62,14 @@ export default function RecipeListScreen({ navigation }: any) {
         <View style={s.headerRight}>
           <View style={[s.dot, connected ? s.dotOn : s.dotOff]} />
           <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('AddRecipe')}>
-            <Text style={s.addBtnText}>+ Add</Text>
+            <Text style={s.addBtnText}><AddIcon name={addIcon} size={16} /> Add</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Search */}
       <View style={s.searchWrap}>
-        <Text style={s.searchIcon}>🔍</Text>
+        <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
         <TextInput
           style={s.searchInput}
           placeholder="Search recipes…"
@@ -71,7 +79,7 @@ export default function RecipeListScreen({ navigation }: any) {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => setQuery('')}>
-            <Text style={s.searchClear}>✕</Text>
+            <Text style={s.searchClear}><CloseIcon name={closeIcon} size={24} color={"#444"} /></Text>
           </TouchableOpacity>
         )}
       </View>

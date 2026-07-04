@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
+import { ICONS } from '../constants/icons';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -22,12 +23,14 @@ function StatCard({ value, label, accent }: { value: string | number; label: str
 }
 
 function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
+
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   return (
     <TouchableOpacity style={s.featured} onPress={onPress} activeOpacity={0.8}>
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.featuredImg} />
-        : <View style={[s.featuredImg, s.featuredImgPlaceholder]}><Text style={s.featuredEmoji}>🍳</Text></View>
+        : <View style={[s.featuredImg, s.featuredImgPlaceholder]}><Text style={s.featuredEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text></View>
       }
       <View style={s.featuredBody}>
         <Text style={s.featuredTitle} numberOfLines={1}>{recipe.title}</Text>
@@ -40,12 +43,14 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
 }
 
 function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
+
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   return (
     <TouchableOpacity style={s.miniCard} onPress={onPress} activeOpacity={0.8}>
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.miniImg} />
-        : <View style={[s.miniImg, s.miniImgPlaceholder]}><Text style={s.miniEmoji}>🍳</Text></View>
+        : <View style={[s.miniImg, s.miniImgPlaceholder]}><Text style={s.miniEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={24} /></Text></View>
       }
       <View style={s.miniBody}>
         <Text style={s.miniTitle} numberOfLines={2}>{recipe.title}</Text>
@@ -67,6 +72,11 @@ export default function HomeScreen({ navigation }: any) {
     if (query.trim()) navigation.navigate('RecipeList', { query });
   };
 
+  const {as: ArrowRightIcon, name: arrowRightIcon} = ICONS.ARROW_RIGHT;
+  const {as: SearchIcon, name: searchIcon} = ICONS.SEARCH;
+  const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
+  const {as: AddIcon, name: addIcon} = ICONS.ADD;
+
   return (
     <View style={s.container}>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
@@ -79,7 +89,7 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* Search */}
         <View style={s.searchWrap}>
-            <Text style={s.searchIcon}>🔍</Text>
+            <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
             <TextInput
             style={s.searchInput}
             placeholder="Search recipes…"
@@ -118,8 +128,8 @@ export default function HomeScreen({ navigation }: any) {
             <>
             <View style={s.sectionHeader}>
                 <Text style={s.sectionTitle}>Recent</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('RecipeList')}>
-                <Text style={s.sectionMore}>See all →</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Recipes')}>
+                <Text style={s.sectionMore}>See all <ArrowRightIcon name={arrowRightIcon} size={12} /></Text>
                 </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.recentRow}>
@@ -136,11 +146,11 @@ export default function HomeScreen({ navigation }: any) {
 
         {!loading && recipes.length === 0 && (
             <View style={s.empty}>
-            <Text style={s.emptyEmoji}>🍳</Text>
+            <Text style={s.emptyEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text>
             <Text style={s.emptyTitle}>No recipes yet</Text>
             <Text style={s.emptyText}>Add your first recipe or import from a URL</Text>
             <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('AddRecipe')}>
-                <Text style={s.emptyBtnText}>+ Add recipe</Text>
+                <Text style={s.emptyBtnText}><AddIcon name={addIcon} size={16} /> Add recipe</Text>
             </TouchableOpacity>
             </View>
         )}
@@ -150,7 +160,7 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* FAB */}
         <TouchableOpacity style={s.fab} onPress={() => navigation.navigate('AddRecipe')}>
-            <Text style={s.fabText}>+</Text>
+            <Text style={s.fabText}><AddIcon name={addIcon} size={24} /></Text>
         </TouchableOpacity>
     </View>
   );
