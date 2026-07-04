@@ -1,10 +1,7 @@
 import { DASHBOARD_URL } from './config';
 import { Recipe } from './types';
 import { localStore } from './localStore';
-import {
-  API_KEY,
-  BASE_URL,
-} from '@env';
+import ENV from './constants/ENV';
 
 async function req(path: string, options?: RequestInit) {
   const res = await fetch(`${DASHBOARD_URL}${path}`, {
@@ -39,7 +36,7 @@ export const api = {
 
     // 2. Try sync to Pi (don’t block UI)
     try {
-      await fetch(`${BASE_URL}/api/recipes`, {
+      await fetch(`${ENV.BASE_URL}/api/recipes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(recipe),
@@ -55,7 +52,7 @@ export const api = {
     await localStore.update(data)
 
     try {
-      await fetch(`${BASE_URL}/api/recipes`, {
+      await fetch(`${ENV.BASE_URL}/api/recipes`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -71,7 +68,7 @@ export const api = {
     await localStore.remove(id)
 
     try {
-      await fetch(`${BASE_URL}/api/recipes?id=${id}`, {
+      await fetch(`${ENV.BASE_URL}/api/recipes?id=${id}`, {
         method: 'DELETE',
       })
     } catch (e) {
@@ -81,7 +78,7 @@ export const api = {
 
   importUrl: async (url: string) => {
     const res = await fetch(
-      `https://api.spoonacular.com/recipes/extract?url=${encodeURIComponent(url)}&apiKey=${API_KEY}`
+      `https://api.spoonacular.com/recipes/extract?url=${encodeURIComponent(url)}&apiKey=${ENV.API_KEY}`
     )
 
     if (!res.ok) {

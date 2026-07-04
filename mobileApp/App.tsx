@@ -3,18 +3,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar, Text } from 'react-native';
-import { RecipesProvider } from './SmartPan/context/RecipesContext';
+import { RecipesProvider } from './src/context/RecipesContext';
 import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
 
 
-import HomeScreen from './SmartPan/screens/homeScreen';
-import RecipeListScreen  from './SmartPan/screens/recipeListScreen';
-import RecipeDetailScreen from './SmartPan/screens/recipeDetailScreen';
-import CookingModeScreen from './SmartPan/screens/cookingModeScreen';
-import AddRecipeScreen   from './SmartPan/screens/addRecipeScreen';
+import HomeScreen from './src/screens/homeScreen';
+import RecipeListScreen  from './src/screens/recipeListScreen';
+import RecipeDetailScreen from './src/screens/recipeDetailScreen';
+import CookingModeScreen from './src/screens/cookingModeScreen';
+import AddRecipeScreen   from './src/screens/addRecipeScreen';
 
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
