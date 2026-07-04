@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, ActivityIndicator, Alert,
@@ -14,7 +14,10 @@ const EMPTY = {
   steps: [{ text: '' }],
 };
 
-export default function AddRecipeScreen({ navigation }: any) {
+export default function AddRecipeScreen({ navigation, route }: any) {
+  const editingRecipe = route.params?.recipe;
+  const isEditing = !!editingRecipe;
+
   const { recipes, remove, save, update } = useRecipes()
   const [form,      setForm]      = useState(EMPTY);
   const [tab,       setTab]       = useState<'manual' | 'url'>('manual');
@@ -33,6 +36,32 @@ export default function AddRecipeScreen({ navigation }: any) {
   const setStep = (i: number, val: string) => {
     setForm(f => { const a = [...f.steps]; a[i] = { text: val }; return { ...f, steps: a }; });
   };
+
+  useEffect(() => {
+    if (!isEditing || !editingRecipe) return;
+
+    setForm({
+      title: editingRecipe.title ?? '',
+      description: editingRecipe.description ?? '',
+      servings: String(editingRecipe.servings ?? 4),
+      prepTime:
+        editingRecipe.prepTime != null ? String(editingRecipe.prepTime) : '',
+      cookTime:
+        editingRecipe.cookTime != null ? String(editingRecipe.cookTime) : '',
+      tags: (editingRecipe.tags ?? []).join(', '),
+      image: editingRecipe.image ?? '',
+      ingredients: editingRecipe.ingredients?.length
+        ? editingRecipe.ingredients.map((i: any) => ({
+            amount: i.amount != null ? String(i.amount) : '',
+            unit: i.unit ?? '',
+            name: i.name,
+          }))
+        : [{ amount: '', unit: '', name: '' }],
+      steps: editingRecipe.steps?.length
+        ? editingRecipe.steps.map((s: any) => ({ text: s.text }))
+        : [{ text: '' }],
+    });
+  }, [isEditing, editingRecipe]);
 
   const handleImport = async () => {
     if (!url.trim()) return;
@@ -67,13 +96,16 @@ export default function AddRecipeScreen({ navigation }: any) {
     setSaving(true);
 
     try {
-      await save({
+      const payload = {
         title: form.title.trim(),
         description: form.description.trim(),
         servings: Number(form.servings) || 4,
         prepTime: Number(form.prepTime) || undefined,
         cookTime: Number(form.cookTime) || undefined,
-        tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: form.tags
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean),
         image: form.image.trim() || undefined,
         ingredients: form.ingredients
           .filter(i => i.name.trim())
@@ -83,7 +115,16 @@ export default function AddRecipeScreen({ navigation }: any) {
             name: i.name.trim(),
           })),
         steps: form.steps.filter(s => s.text.trim()),
-      });
+      };
+
+      if (isEditing && editingRecipe) {
+        await update({
+          ...editingRecipe,
+          ...payload,
+        });
+      } else {
+        await save(payload);
+      }
 
       navigation.goBack();
     } catch (e: any) {
@@ -97,7 +138,7 @@ export default function AddRecipeScreen({ navigation }: any) {
     <View style={s.container}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={"#444"} /></Text>
+          <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} /></Text>
         </TouchableOpacity>
         <View style={s.tabs}>
           <TouchableOpacity style={[s.tab, tab === 'manual' && s.tabActive]} onPress={() => setTab('manual')}>

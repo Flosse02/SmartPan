@@ -7,10 +7,48 @@ import { api } from '../api';
 import { useRecipes } from '../context/RecipesContext';
 import { ICONS } from '../constants/icons';
 
-function scaleAmount(amount: number | null, base: number, current: number) {
+function formatFraction(value: number) {
+  const fractions: Record<number, string> = {
+    0.125: '1/8',
+    0.25: '1/4',
+    0.333: '1/3',
+    0.5: '1/2',
+    0.667: '2/3',
+    0.75: '3/4',
+  };
+
+  const whole = Math.floor(value);
+  const decimal = Number((value - whole).toFixed(3));
+
+  let fraction = '';
+
+  for (const [k, v] of Object.entries(fractions)) {
+    if (Math.abs(decimal - Number(k)) < 0.02) {
+      fraction = v;
+      break;
+    }
+  }
+
+  if (whole && fraction) return `${whole} ${fraction}`;
+  if (fraction) return fraction;
+  return value.toString();
+}
+
+function scaleAmount(
+  amount: number | null,
+  base: number,
+  current: number
+) {
   if (amount == null) return '';
+
   const scaled = (amount * current) / base;
-  return scaled === Math.floor(scaled) ? String(scaled) : scaled.toFixed(1).replace(/\.0$/, '');
+
+  // integers
+  if (Number.isInteger(scaled)) {
+    return String(scaled);
+  }
+
+  return formatFraction(Number(scaled.toFixed(3)));
 }
 
 function fmtTime(min?: number) {
@@ -20,10 +58,10 @@ function fmtTime(min?: number) {
 }
 
 export default function RecipeDetailScreen({ route, navigation }: any) {
-  const { recipe }: { recipe: Recipe } = route.params;
-  const { recipes, remove, save, update } = useRecipes()
-  const [servings, setServings] = useState(recipe.servings);
+  const { recipes, remove, save, update } = useRecipes();
 
+  const recipe = recipes.find(r => r.id === route.params.id);
+  const [servings, setServings] = useState(recipe?.servings ?? 1);
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: ArrowLeftIcon, name: arrowLeftIcon} = ICONS.ARROW_LEFT;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
@@ -55,6 +93,10 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       {/* Delete button */}
       <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete()}>
         <Text style={s.deleteBtnText}>Delete</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={s.editBtn} onPress={() => navigation.navigate('AddRecipe', { recipe })}>
+        <Text style={s.editBtnText}>Edit</Text>
       </TouchableOpacity>
 
       {/* Cook button */}
@@ -148,4 +190,6 @@ const s = StyleSheet.create({
   stepNum:          { width: 24, height: 24, borderRadius: 12, borderWidth: 0.5, borderColor: '#6366f1', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
   stepNumText:      { fontSize: 11, color: '#6366f1' },
   stepText:         { fontSize: 14, color: '#d0d0d0', lineHeight: 22, flex: 1 },
+  editBtn:          { position: 'absolute', top: 20, right: 96, backgroundColor: '#1e1e24', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 0.5, borderColor: '#2a2a2f' },
+  editBtnText:      { color: '#f0f0f0', fontSize: 13, fontWeight: '600' },
 });

@@ -76,7 +76,7 @@ function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) 
 }
 
 export default function HomeScreen({ navigation }: any) {
-  const { recipes, remove, save, update, connected, loading } = useRecipes();
+  const { recipes, remove, save, update, connected, loading, refresh } = useRecipes();
   const [query, setQuery] = useState('');
 
   const allTags   = Array.from(new Set(recipes.flatMap(r => r.tags)));
@@ -102,6 +102,17 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={s.headerSub}>What are we cooking today?</Text>
         </View>
 
+        <TouchableOpacity
+          style={s.syncBtn}
+          onPress={() => refresh()}
+          disabled={loading}
+        >
+          {loading
+            ? <ActivityIndicator size="small" color="#6366f1" />
+            : <Text style={s.syncBtnText}>🔄 Sync</Text>
+          }
+        </TouchableOpacity>
+
         {/* Search */}
         <View style={s.searchWrap}>
             <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
@@ -120,7 +131,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={s.statsRow}>
             <StatCard value={recipes.length} label="Recipes" />
             <StatCard value={allTags.length} label="Tags" />
-            <StatCard value={connected ? '●' : '○'} label="Synced" accent={connected ? '#4caf7d' : '#555'} />
+            <StatCard value={connected ? '●' : '○'} label="Connected" accent={connected ? '#4caf7d' : '#555'} />
         </View>
 
         {loading && recipes.length === 0 && (
@@ -133,7 +144,7 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={s.sectionTitle}>Featured</Text>
             <FeaturedCard
                 recipe={featured}
-                onPress={() => navigation.navigate('RecipeDetail', { recipe: featured })}
+                onPress={() => navigation.navigate('RecipeDetail', { id: featured.id })}
             />
             </>
         )}
@@ -152,7 +163,7 @@ export default function HomeScreen({ navigation }: any) {
                 <MiniCard
                     key={r.id}
                     recipe={r}
-                    onPress={() => navigation.navigate('RecipeDetail', { recipe: r })}
+                    onPress={() => navigation.navigate('RecipeDetail', { id: r.id })}
                 />
                 ))}
             </ScrollView>
@@ -220,4 +231,6 @@ const s = StyleSheet.create({
   emptyBtnText:         { color: '#fff', fontSize: 14, fontWeight: '600' },
   fab:                  { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: '#6366f1', alignItems: 'center', justifyContent: 'center' },
   fabText:              { color: '#fff', fontSize: 28, lineHeight: 32 },
+  syncBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingVertical: 10 },
+  syncBtnText: { color: '#6366f1', fontSize: 13, fontWeight: '600' },
 });

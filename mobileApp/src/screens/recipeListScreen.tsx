@@ -44,7 +44,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
 }
 
 export default function RecipeListScreen({ navigation }: any) {
-  const { recipes, remove, fetch, loading, error, connected } = useRecipes()
+  const { recipes, remove, refresh, loading, error, connected } = useRecipes()
   const [query, setQuery] = useState('');
 
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
@@ -99,9 +99,9 @@ export default function RecipeListScreen({ navigation }: any) {
             numColumns={2}
             columnWrapperStyle={s.row}
             contentContainerStyle={s.list}
-            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => fetch()} tintColor="#6366f1" />}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => refresh()} tintColor="#6366f1" />}
             renderItem={({ item }) => (
-              <RecipeCard recipe={item} onPress={() => navigation.navigate('RecipeDetail', { recipe: item })} />
+              <RecipeCard recipe={item} onPress={() => navigation.navigate('RecipeDetail', { id: item.id })} />
             )}
           />
         )

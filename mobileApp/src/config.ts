@@ -1,2 +1,4 @@
-export const DASHBOARD_URL = 'http://localhost:3000';
-export const WS_URL        = DASHBOARD_URL.replace('http', 'ws');
+import ENV from './constants/ENV';
+
+export const DASHBOARD_URL = ENV.BASE_URL;
+export const WS_URL = DASHBOARD_URL.replace('http', 'ws');

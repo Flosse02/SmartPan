@@ -12,7 +12,7 @@ type RecipesContextType = {
   error: string | null;
   connected: boolean;
 
-  fetch: () => Promise<void>;
+  refresh: () => Promise<void>;   // ← renamed from fetch
   save: (data: Omit<Recipe, 'id' | 'createdAt'>) => Promise<void>;
   update: (data: Recipe) => Promise<void>;
   remove: (id: string) => Promise<void>;
@@ -28,9 +28,6 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   const wsRef = useRef<WebSocket | null>(null);
 
-  // -----------------------
-  // CACHE LOAD (instant UI)
-  // -----------------------
   useEffect(() => {
     AsyncStorage.getItem(CACHE_KEY).then(raw => {
       if (raw) setRecipes(JSON.parse(raw));
@@ -41,10 +38,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
   }, []);
 
-  // -----------------------
-  // FETCH FROM PI
-  // -----------------------
-  const fetch = useCallback(async () => {
+  const refresh = useCallback(async () => {  
     setLoading(true);
     setError(null);
 
@@ -59,26 +53,42 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cache]);
 
+
   useEffect(() => {
     let cancelled = false;
     let reconnectTimer: ReturnType<typeof setTimeout>;
 
     const connect = () => {
       if (cancelled) return;
-      const ws = new WebSocket(`${WS_URL}/api/recipes/ws`);
+
+      const url = `${WS_URL}/api/recipes/ws`;
+      console.log('[WS] connecting to', url);
+
+      const ws = new WebSocket(url);
       wsRef.current = ws;
 
-      ws.onopen = () => setConnected(true);
+      ws.onopen = () => {
+        console.log('[WS] connected');
+        setConnected(true);
+      };
 
-      ws.onclose = () => {
+      ws.onclose = (e) => {
+        console.log('[WS] closed', { code: e.code, reason: e.reason, wasClean: e.wasClean });
         setConnected(false);
         if (!cancelled) {
           reconnectTimer = setTimeout(connect, 5000);
         }
       };
 
-      ws.onerror = () => ws.close();
-      ws.onmessage = (e) => { /* ... unchanged ... */ };
+      ws.onerror = (e) => {
+        console.log('[WS] error', e.message ?? e);
+        ws.close();
+      };
+
+      ws.onmessage = (e) => {
+        console.log('[WS] message', e.data);
+        /* ... unchanged ... */
+      };
     };
 
     connect();
@@ -92,8 +102,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    fetch();
-  }, [fetch]);
+    refresh();
+  }, [refresh])
 
   const save = useCallback(async (data: Omit<Recipe, 'id' | 'createdAt'>) => {
   const tempRecipe: Recipe = {
@@ -161,7 +171,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       connected,
-      fetch,
+      refresh,
       save,
       update,
       remove,
