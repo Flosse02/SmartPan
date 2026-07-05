@@ -93,7 +93,7 @@ export default function CookingModeScreen({ route, navigation }: any) {
           onPress={() => setStep(prev => Math.max(0, prev - 1))}
           disabled={step === 0}
         >
-          <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={ step === 0 ? colours.textGhost : 'white' } /> Prev</Text>
+          <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={ step === 0 ? colours.textGhost : colours.text } /> Prev</Text>
         </TouchableOpacity>
 
         {step < total - 1
