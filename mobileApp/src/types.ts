@@ -24,6 +24,7 @@ export interface Recipe {
   ingredients:  Ingredient[];
   steps:        Step[];
   notes:        Note[];
-  source?:      string;
+  source:       'local' | 'server';
   createdAt:    string;
+  updatedAt:    string;
 }

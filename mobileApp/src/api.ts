@@ -99,31 +99,61 @@ function parseIngredient(raw: string) {
 
 export const api = {
   getRecipes: async (q?: string) => {
-    try {
-      const remote = await req(
-        `/api/recipes${q ? `?q=${encodeURIComponent(q)}` : ''}`
-      );
+  try {
+    const remote = await req(
+      `/api/recipes${q ? `?q=${encodeURIComponent(q)}` : ''}`
+    );
 
-      await localStore.saveAll(remote);
-      return remote;
-    } catch (e) {
-      console.log('Server unreachable, falling back to local cache');
+    const local = await localStore.getAll();
 
-      const all = await localStore.getAll();
-      if (!q) return all;
+    const map = new Map<string, Recipe>();
 
-      return all.filter((r: Recipe) =>
-        r.title.toLowerCase().includes(q.toLowerCase())
-      );
+    for (const r of local) {
+      map.set(r.id, r);
     }
-  },
+
+    for (const r of remote) {
+      const existing = map.get(r.id);
+
+      if (!existing) {
+        map.set(r.id, r);
+        continue;
+      }
+
+      const remoteTime = new Date((r as any).updatedAt ?? 0).getTime();
+      const localTime = new Date((existing as any).updatedAt ?? 0).getTime();
+
+      const winner = remoteTime >= localTime ? r : existing;
+
+      map.set(r.id, winner);
+    }
+
+    const merged = Array.from(map.values());
+
+    await localStore.saveAll(merged);
+
+    return merged;
+  } catch (e) {
+    console.log('Server unreachable, falling back to local cache');
+
+    const all = await localStore.getAll();
+
+    if (!q) return all;
+
+    return all.filter((r: Recipe) =>
+      r.title.toLowerCase().includes(q.toLowerCase())
+    );
+  }
+},
 
   saveRecipe: async (data: any) => {
     const tempId = Date.now().toString();
     const localRecipe = {
       ...data,
       id: tempId,
+      source: 'local',
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     await localStore.add(localRecipe);
