@@ -206,7 +206,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
           {form.steps.map((step, i) => (
             <View key={i} style={s.stepRow}>
               <View style={s.stepNum}><Text style={s.stepNumText}>{i + 1}</Text></View>
-              <TextInput style={[s.input, s.textarea, { flex: 1 }]} placeholder={`Step ${i + 1}…`} placeholderTextColor={colours.textGhost} value={step.text} onChangeText={v => setStep(i, v)} multiline />
+              <TextInput style={[s.input, s.textarea, { flex: 1 }]} placeholder={`Step ${i + 1}...`} placeholderTextColor={colours.textGhost} value={step.text} onChangeText={v => setStep(i, v)} multiline />
               <TouchableOpacity onPress={() => setForm(f => ({ ...f, steps: f.steps.filter((_, j) => j !== i) }))} style={s.removeBtn}>
                 <Text style={s.removeBtnText}><CloseIcon name={closeIcon} size={24} color={colours.textGhost} /></Text>
               </TouchableOpacity>
@@ -220,7 +220,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
           {form.notes.map((note, i) => (
             <View key={i} style={s.stepRow}>
               <View style={s.stepNum}><Text style={s.stepNumText}>{i + 1}</Text></View>
-              <TextInput style={[s.input, s.textarea, { flex: 1 }]} placeholder={`Note ${i + 1}…`} placeholderTextColor={colours.textGhost} value={note.text} onChangeText={v => setNote(i, v)} multiline />
+              <TextInput style={[s.input, s.textarea, { flex: 1 }]} placeholder={`Note...`} placeholderTextColor={colours.textGhost} value={note.text} onChangeText={v => setNote(i, v)} multiline />
               <TouchableOpacity onPress={() => setForm(f => ({ ...f, notes: f.notes.filter((_, j) => j !== i) }))} style={s.removeBtn}>
                 <Text style={s.removeBtnText}><CloseIcon name={closeIcon} size={24} color={colours.textGhost} /></Text>
               </TouchableOpacity>
