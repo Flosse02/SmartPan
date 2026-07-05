@@ -14,7 +14,7 @@ import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
-import { colours } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -23,6 +23,8 @@ function fmtTime(min?: number) {
 }
 
 function StatCard({ value, label, accent }: { value: string | number; label: string; accent?: string }) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
   return (
     <View style={s.statCard}>
       <Text style={[s.statVal, accent ? { color: accent } : {}]}>{value}</Text>
@@ -32,6 +34,8 @@ function StatCard({ value, label, accent }: { value: string | number; label: str
 }
 
 function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: HeadIcon, name: headIcon} = ICONS.HEAD;
   const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
@@ -66,6 +70,8 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
 }
 
 function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
 
@@ -85,6 +91,9 @@ function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) 
 }
 
 export default function HomeScreen({ navigation }: any) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
+
   const { recipes, remove, save, update, connected, loading, refresh } = useRecipes();
   const [query, setQuery] = useState('');
 
@@ -185,7 +194,7 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:            { flex: 1, backgroundColor: colours.bg },
   scroll:               { paddingBottom: 80 },
   searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },

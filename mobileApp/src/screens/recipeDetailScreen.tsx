@@ -6,7 +6,7 @@ import { Recipe } from '../types';
 import { api } from '../api';
 import { useRecipes } from '../context/RecipesContext';
 import { ICONS } from '../constants/icons';
-import { colours } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
 
 function formatFraction(value: number) {
   const fractions: Record<number, string> = {
@@ -59,6 +59,9 @@ function fmtTime(min?: number) {
 }
 
 export default function RecipeDetailScreen({ route, navigation }: any) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
+
   const { recipes, remove, save, update } = useRecipes();
   const params = route.params as { id?: string; recipe?: Recipe };
   const recipe: Recipe | undefined = recipes.find(r => r.id === params.id) || params.recipe;
@@ -154,7 +157,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
 
         {/* Steps */}
         <Text style={[s.sectionLabel, { marginTop: 24 }]}>Method</Text>
-        {(recipe.steps ?? []).map((step: { text: string }, i: number) => (
+        {(recipe.steps ?? []).map((step, i) => (
           <View key={i} style={s.step}>
             <View style={s.stepNum}><Text style={s.stepNumText}>{i + 1}</Text></View>
             <Text style={s.stepText}>{step.text}</Text>
@@ -167,7 +170,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:        { flex: 1, backgroundColor: colours.bg },
   hero:             { width: '100%', height: 220 },
   heroPlaceholder:  { backgroundColor: colours.accentBg, alignItems: 'center', justifyContent: 'center' },

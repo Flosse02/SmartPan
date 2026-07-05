@@ -8,7 +8,8 @@ import {
     AccessibilityRole 
 } from 'react-native';
 import { IconType } from '../constants/icons';
-import { colours, typography } from '../theme/theme';
+import { typography } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
 
 type HeaderProps = {
   title: string;
@@ -34,21 +35,22 @@ export function Header({
   loading,
 }: HeaderProps) {
   const ButtonIcon = buttonIcon?.as;    
+  const { colours } = useTheme();
   return (
-    <View style={s.header}>
-      <View style={s.headerLeft}>
-        <Text style={s.headerTitle}>{title}</Text>
-        {subtitle ? <Text style={s.headerSub}>{subtitle}</Text> : null}
+    <View style={s(colours).header}>
+      <View style={s(colours).headerLeft}>
+        <Text style={s(colours).headerTitle}>{title}</Text>
+        {subtitle ? <Text style={s(colours).headerSub}>{subtitle}</Text> : null}
       </View>
 
-      <View style={s.headerRight}>
+      <View style={s(colours).headerRight}>
         {connected !== undefined && (
-          <View style={[s.dot, connected ? s.dotOn : s.dotOff]} />
+          <View style={[s(colours).dot, connected ? s(colours).dotOn : s(colours).dotOff]} />
         )}
 
         {onPress && (
           <TouchableOpacity
-            style={s.actionBtn}
+            style={s(colours).actionBtn}
             onPress={onPress}
             disabled={loading}
             accessibilityRole={buttonAccessibilityRole}
@@ -61,7 +63,7 @@ export function Header({
                 {ButtonIcon && buttonIcon && (
                   <ButtonIcon name={buttonIcon.name} size={18} color="#6366f1" />
                 )}
-                {buttonText ? <Text style={s.actionBtnText}>{buttonText}</Text> : null}
+                {buttonText ? <Text style={s(colours).actionBtnText}>{buttonText}</Text> : null}
               </>
             )}
           </TouchableOpacity>
@@ -71,7 +73,7 @@ export function Header({
   );
 }
 
-const s = StyleSheet.create({
+const s = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   headerLeft:           { flexShrink: 1 },
   headerTitle:          { fontSize: typography.title.fontSize, fontWeight: typography.title.fontWeight, color: colours.text, letterSpacing: -0.5 },

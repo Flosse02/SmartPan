@@ -6,7 +6,7 @@ import {
 import { useRecipes } from '../context/RecipesContext';
 import { api } from '../api';
 import { ICONS } from '../constants/icons';
-import { colours } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
 
 const EMPTY = {
   title: '', description: '', servings: '4', prepTime: '', cookTime: '',
@@ -17,6 +17,9 @@ const EMPTY = {
 };
 
 export default function AddRecipeScreen({ navigation, route }: any) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
+
   const editingRecipe = route.params?.recipe;
   const isEditing = !!editingRecipe;
 
@@ -234,7 +237,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:       { flex: 1, backgroundColor: colours.bg },
   header:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: colours.border, gap: 10 },
   backBtn:         { padding: 4 },

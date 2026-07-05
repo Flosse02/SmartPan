@@ -14,7 +14,7 @@ import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
-import { colours } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -23,6 +23,8 @@ function fmtTime(min?: number) {
 }
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
   const {as: HeadIcon, name: headIcon} = ICONS.HEAD;
   const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
@@ -53,6 +55,9 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
 }
 
 export default function RecipeListScreen({ navigation }: any) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
+
   const { recipes, remove, refresh, loading, error, connected } = useRecipes()
   const [query, setQuery] = useState('');
 
@@ -105,7 +110,7 @@ export default function RecipeListScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:            { flex: 1, backgroundColor: colours.bg },
   list:                 { paddingHorizontal: 12, paddingBottom: 32 },
   row:                  { gap: 10, marginBottom: 10 },

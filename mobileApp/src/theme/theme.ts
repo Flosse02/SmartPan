@@ -1,4 +1,4 @@
-export const colours = {
+export const darkColours = {
   bg:          '#0f0f13',
   surface:     '#1a1a1f',
   border:      '#2a2a2f',
@@ -17,6 +17,26 @@ export const colours = {
   textGhost:   '#555',
 };
 
+export const lightColours = {
+  bg:          '#f7f7fa',
+  surface:     '#ffffff',
+  border:      '#e2e2e8',
+
+  accent:      '#6366f1',
+  accentBg:    'rgba(99,102,241,0.10)',
+
+  success:     '#2f9d63',
+  error:       '#d64545',
+  inactive:    '#c4c4cc',
+
+  text:        '#16161d',
+  textDim:     '#3a3a42',
+  textMuted:   '#63636b',
+  textFaint:   '#87878f',
+  textGhost:   '#9a9aa2',
+};
+
+
 export const spacing = {
   xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24,
 };
@@ -32,3 +52,5 @@ export const typography = {
   body:     { fontSize: 14, fontWeight: '400' as const },
   small:    { fontSize: 11, fontWeight: '500' as const },
 };
+
+export type Colours = typeof darkColours;

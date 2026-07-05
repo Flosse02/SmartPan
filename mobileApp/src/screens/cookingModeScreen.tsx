@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
-import { colours } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
 
 function scaleAmount(amount: number | null, base: number, current: number) {
   if (amount == null) return '';
@@ -13,6 +13,9 @@ function scaleAmount(amount: number | null, base: number, current: number) {
 }
 
 export default function CookingModeScreen({ route, navigation }: any) {
+  const { colours } = useTheme();
+  const s = createStyles(colours);
+
   const { recipe, servings = recipe.servings }: { recipe: Recipe; servings: number } = route.params;
   const [step,    setStep]    = useState(0);
   const [checked, setChecked] = useState<Set<number>>(new Set());
@@ -87,14 +90,14 @@ export default function CookingModeScreen({ route, navigation }: any) {
       <View style={s.nav}>
         <TouchableOpacity
           style={[s.navBtn, step === 0 && s.navBtnDisabled]}
-          onPress={() => setStep(s => Math.max(0, s - 1))}
+          onPress={() => setStep(prev => Math.max(0, prev - 1))}
           disabled={step === 0}
         >
           <Text style={[s.navBtnText, step === 0 && s.navBtnTextDisabled]}><ArrowLeftIcon name={arrowLeftIcon} size={24} color={ step === 0 ? colours.textGhost : 'white' } /> Prev</Text>
         </TouchableOpacity>
 
         {step < total - 1
-          ? <TouchableOpacity style={[s.navBtn, s.navBtnPrimary]} onPress={() => setStep(s => s + 1)}>
+          ? <TouchableOpacity style={[s.navBtn, s.navBtnPrimary]} onPress={() => setStep(prev => prev + 1)}>
               <Text style={s.navBtnTextPrimary}>Next <ArrowRightIcon name={arrowRightIcon} size={24} color={colours.text} /></Text>
             </TouchableOpacity>
           : <TouchableOpacity style={[s.navBtn, s.navBtnDone]} onPress={() => navigation.goBack()}>
@@ -106,7 +109,7 @@ export default function CookingModeScreen({ route, navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:            { flex: 1, backgroundColor: colours.bg },
   header:               { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 10, borderBottomWidth: 0.5, borderBottomColor: colours.border },
   title:                { flex: 1, fontSize: 13, color: colours.textGhost, letterSpacing: 1, textTransform: 'uppercase' },

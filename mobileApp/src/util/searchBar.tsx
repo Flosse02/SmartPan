@@ -7,7 +7,8 @@ import {
     TouchableOpacity
 } from 'react-native';
 import { ICONS } from '../constants/icons';
-import { colours, spacing, radius, typography } from '../theme/theme';
+import { useTheme } from '../theme/Themecontext';
+import { typography } from '../theme/theme';
 
 
 type searchBarProps = {
@@ -23,13 +24,14 @@ export function SearchBar({
   setQuery,
   handleSearch,
 }: searchBarProps) {
+  const { colours } = useTheme();
   const {as: SearchIcon, name: searchIcon} = ICONS.SEARCH;
   const {as: CloseIcon, name: closeIcon} = ICONS.CLOSE;
   return (
-    <View style={s.searchWrap}>
-        <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={colours.textFaint} /></Text>
+    <View style={s(colours).searchWrap}>
+        <Text style={s(colours).searchIcon}><SearchIcon name={searchIcon} size={24} color={colours.textFaint} /></Text>
         <TextInput
-            style={s.searchInput}
+            style={s(colours).searchInput}
             placeholder={placeholder}
             placeholderTextColor={colours.textFaint}
             value={query}
@@ -39,14 +41,14 @@ export function SearchBar({
         />
         {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-            <Text style={s.searchClear}><CloseIcon name={closeIcon} size={24} color={colours.textFaint} /></Text>
+            <Text style={s(colours).searchClear}><CloseIcon name={closeIcon} size={24} color={colours.textFaint} /></Text>
             </TouchableOpacity>
         )}
     </View>
   )
 }
 
-const s = StyleSheet.create({
+const s = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
     searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
     searchIcon:           { fontSize: 14 },
     searchInput:          { flex: 1, fontSize: typography.body.fontSize, color: colours.text },
