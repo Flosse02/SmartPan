@@ -11,6 +11,7 @@ import { Header } from '../util/header';
 import { useTheme } from '../theme/Themecontext';
 import { InputBar } from '../util/inputBar';
 import { useConfig } from '../context/ConfigContext';
+import { useRecipes } from '../context/RecipesContext';
 
 const OPTIONS: { label: string; value: 'system' | 'light' | 'dark' }[] = [
   { label: 'System', value: 'system' },
@@ -24,6 +25,8 @@ export default function SettingsScreen({ navigation }: any) {
   const [ipAddress, setIpAddress] = useState('');
   const [port, setPort] = useState('');
   const styles = s(colours);
+
+  const { connected } = useRecipes();
 
   useEffect(() => {
     if (config) {
@@ -63,7 +66,10 @@ export default function SettingsScreen({ navigation }: any) {
         </View>
 
         <View style={styles.settingContainer}>
-          <Text style={styles.sectionLabel}>Smarthome</Text>
+          <View style={styles.sectionSidebySide}>
+            <Text style={styles.sectionLabel}>Smarthome</Text>
+            <View style={[styles.dot, connected ? styles.dotOn : styles.dotOff]} />
+          </View>
           <Text style={styles.sectionSubLabel}>Ip Address</Text>
           <InputBar
             placeholder='192.xxx.x.xxx'
@@ -100,6 +106,7 @@ export default function SettingsScreen({ navigation }: any) {
 const s = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:            { flex: 1, backgroundColor: colours.bg },
   settingContainer:     { borderRadius: 8, borderWidth: 1, borderColor: colours.border, paddingBottom: 12, marginBottom: 8, marginHorizontal: 16 },
+  sectionSidebySide:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 18},
   scroll:               { paddingBottom: 80 },
   sectionLabel:         { fontSize: 16, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, paddingHorizontal: 16, marginTop: 12, marginBottom: 10 },
   sectionSubLabel:      { fontSize: 10, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, paddingHorizontal: 16, marginTop: 2, marginBottom: 10 },
@@ -110,4 +117,7 @@ const s = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create
   optionTextActive:     { color: colours.text },
   saveButton:           { marginHorizontal: 16, marginTop: 10, paddingVertical: 10, borderRadius: 8, backgroundColor: colours.accent, alignItems: 'center' },
   saveButtonText:       { color: colours.text,fontWeight: '600' },
+  dot:                  { width: 16, height: 16, borderRadius: 12 },
+  dotOn:                { backgroundColor: colours.accent },
+  dotOff:               { backgroundColor: colours.textGhost },
 });
