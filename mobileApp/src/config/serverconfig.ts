@@ -3,11 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const IP_KEY = 'smarthome_ip';
 const PORT_KEY = 'smarthome_port';
 
-export async function saveServerConfig(ip: string, port: string) {
-  await AsyncStorage.setItem(IP_KEY, ip);
-  await AsyncStorage.setItem(PORT_KEY, port);
-}
-
 export async function getServerConfig() {
   const [ip, port] = await Promise.all([
     AsyncStorage.getItem(IP_KEY),

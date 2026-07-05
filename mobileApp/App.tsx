@@ -15,6 +15,7 @@ import { getBottomTabsIcon } from './src/util/getBottomTabsIcon';
 import { ROUTES } from './src/constants/routes';
 import SettingsScreen from './src/screens/settingsScreen';
 import { ThemeProvider, useTheme } from './src/theme/Themecontext';
+import { ConfigProvider } from './src/context/ConfigContext';
 
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -49,27 +50,29 @@ function AppContent() {
   const { colours, isDark } = useTheme();
 
   return (
-    <RecipesProvider>
-      <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1, backgroundColor: colours.bg }}>
-          <NavigationContainer>
-            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colours.bg} />
+    <ConfigProvider>
+      <RecipesProvider>
+        <SafeAreaProvider>
+          <SafeAreaView style={{ flex: 1, backgroundColor: colours.bg }}>
+            <NavigationContainer>
+              <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colours.bg} />
 
-            <Stack.Navigator
-              screenOptions={{
-                headerShown: false,
-                cardStyle: { backgroundColor: colours.bg },
-              }}
-            >
-              <Stack.Screen name="Main" component={MainTabs} />
-              <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
-              <Stack.Screen name="CookingMode" component={CookingModeScreen} />
-              <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </RecipesProvider>
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: false,
+                  cardStyle: { backgroundColor: colours.bg },
+                }}
+              >
+                <Stack.Screen name="Main" component={MainTabs} />
+                <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+                <Stack.Screen name="CookingMode" component={CookingModeScreen} />
+                <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </RecipesProvider>
+    </ConfigProvider>
   );
 }
 

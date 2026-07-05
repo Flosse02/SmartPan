@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../api';
-import { WS_URL } from '../config';
 import { Recipe } from '../types';
+import { useConfig } from '../context/ConfigContext';
+
 
 const CACHE_KEY = 'smartpan_recipes';
 
@@ -25,6 +26,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const { config } = useConfig();
 
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -55,39 +57,33 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
+    if (!config) return;
+
     let cancelled = false;
     let reconnectTimer: ReturnType<typeof setTimeout>;
 
     const connect = () => {
       if (cancelled) return;
 
-      const url = `${WS_URL}/api/recipes/ws`;
+      const url = `${config.wsUrl}/api/recipes/ws`;
       console.log('[WS] connecting to', url);
 
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
-      ws.onopen = () => {
-        console.log('[WS] connected');
-        setConnected(true);
-      };
+      ws.onopen = () => setConnected(true);
 
-      ws.onclose = (e) => {
-        console.log('[WS] closed', { code: e.code, reason: e.reason, wasClean: e.wasClean });
+      ws.onclose = () => {
         setConnected(false);
         if (!cancelled) {
-          reconnectTimer = setTimeout(connect, 5000);
+          reconnectTimer = setTimeout(connect, 3000);
         }
       };
 
-      ws.onerror = (e) => {
-        console.log('[WS] error', e.message ?? e);
-        ws.close();
-      };
+      ws.onerror = () => ws.close();
 
       ws.onmessage = (e) => {
         console.log('[WS] message', e.data);
-        /* ... unchanged ... */
       };
     };
 
@@ -98,7 +94,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(reconnectTimer);
       wsRef.current?.close();
     };
-  }, [cache]);
+  }, [config]);
 
 
   useEffect(() => {
