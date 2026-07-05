@@ -75,7 +75,7 @@ These settings are persisted locally.
 
 ---
 
-## 💡 Architecture Overview
+## Architecture Overview
 
 - RecipesContext
   - Fetching recipes
