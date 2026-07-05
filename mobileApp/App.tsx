@@ -18,6 +18,7 @@ import AddRecipeScreen   from './src/screens/addRecipeScreen';
 import { ICONS } from './src/constants/icons';
 import { getBottomTabsIcon } from './src/util/getBottomTabsIcon';
 import { ROUTES } from './src/constants/routes';
+import SettingsScreen from './src/screens/settingsScreen';
 
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -49,6 +50,11 @@ function MainTabs() {
         name={ROUTES.RECIPES}
         component={RecipeListScreen}
         options={{ title: 'Recipes' }}
+      />
+      <Tab.Screen
+        name={ROUTES.SETTINGS}
+        component={SettingsScreen}
+        options={{ title: 'Settings' }}
       />
     </Tab.Navigator>
   );

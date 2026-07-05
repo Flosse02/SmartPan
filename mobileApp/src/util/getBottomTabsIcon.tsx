@@ -12,6 +12,8 @@ export function getBottomTabsIcon(
   const {as: HomeIconOutlined, name: homeIconOutlined} = ICONS.HOME_OUTLINED;
   const {as: RecipeIcon, name: recipeIcon} = ICONS.RECIPES;
   const {as: RecipeIconOutlined, name: recipeIconOutlined} = ICONS.RECIPES_OUTLINED;
+  const {as: SettingsIcon, name: settingsIcon} = ICONS.SETTINGS;
+  const {as: SettingsIconOutlined, name: settingsIconOutlined} = ICONS.SETTINGS_OUTLINED;
 
   switch (routeName) {
     case ROUTES.HOME:
@@ -25,6 +27,12 @@ export function getBottomTabsIcon(
         <RecipeIcon name={recipeIcon} size={size} color={color} style={{margin: 3}} />
       ) : (
         <RecipeIconOutlined name={recipeIconOutlined} size={size} color={color} style={{margin: 3}} />
+      );
+    case ROUTES.SETTINGS:
+      return focused ? (
+        <SettingsIcon name={settingsIcon} size={size} color={color} style={{margin: 3}} />
+      ) : (
+        <SettingsIconOutlined name={settingsIconOutlined} size={size} color={color} style={{margin: 3}} />
       );
     default:
       return <Text>{'< Icon >'}</Text>;

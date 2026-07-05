@@ -1,11 +1,19 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, FlatList, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Image, RefreshControl,
+  View, 
+  Text, 
+  FlatList, 
+  TextInput, 
+  TouchableOpacity,
+  StyleSheet, 
+  ActivityIndicator, 
+  Image, 
+  RefreshControl,
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
+import { Header } from '../util/header';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -58,15 +66,15 @@ export default function RecipeListScreen({ navigation }: any) {
   return (
     <View style={s.container}>
       {/* Header */}
-      <View style={s.header}>
-        <Text style={s.headerTitle}>SmartPan</Text>
-        <View style={s.headerRight}>
-          <View style={[s.dot, connected ? s.dotOn : s.dotOff]} />
-          <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('AddRecipe')}>
-            <Text style={s.addBtnText}><AddIcon name={addIcon} size={16} /> Add</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Header 
+        title="Recipes"
+        subtitle="Search all recipes"
+        connected={connected}
+        onPress={() => navigation.navigate('AddRecipe')}
+        buttonIcon={{ as: AddIcon, name: addIcon }}
+        buttonText="Add"
+        loading={loading}
+      />
 
       {/* Search */}
       <View style={s.searchWrap}>
@@ -112,14 +120,6 @@ export default function RecipeListScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   container:            { flex: 1, backgroundColor: '#0f0f13' },
-  header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
-  headerTitle:          { fontSize: 22, fontWeight: '700', color: '#f0f0f0', letterSpacing: -0.5 },
-  headerRight:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  dot:                  { width: 7, height: 7, borderRadius: 4 },
-  dotOn:                { backgroundColor: '#4caf7d' },
-  dotOff:               { backgroundColor: '#444' },
-  addBtn:               { backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
-  addBtnText:           { color: '#fff', fontSize: 13, fontWeight: '600' },
   searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingHorizontal: 12, paddingVertical: 8 },
   searchIcon:           { fontSize: 14, marginRight: 8 },
   searchInput:          { flex: 1, fontSize: 14, color: '#f0f0f0' },

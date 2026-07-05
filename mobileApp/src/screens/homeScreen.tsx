@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  Image, TextInput, SafeAreaView, ActivityIndicator,
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity,
+  StyleSheet,
+  Image, 
+  TextInput, 
+  ActivityIndicator,
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
+import { Header } from '../util/header';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -91,39 +98,35 @@ export default function HomeScreen({ navigation }: any) {
   const {as: SearchIcon, name: searchIcon} = ICONS.SEARCH;
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
+  const {as: RefreshIcon, name: refreshIcon} = ICONS.REFRESH;
 
   return (
     <View style={s.container}>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-
+        
         {/* Header */}
-        <View style={s.header}>
-            <Text style={s.headerTitle}>SmartPan</Text>
-            <Text style={s.headerSub}>What are we cooking today?</Text>
-        </View>
 
-        <TouchableOpacity
-          style={s.syncBtn}
+        <Header 
+          title="SmartPan"
+          subtitle="What are we cooking today?"
+          connected={connected}
           onPress={() => refresh()}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator size="small" color="#6366f1" />
-            : <Text style={s.syncBtnText}>🔄 Sync</Text>
-          }
-        </TouchableOpacity>
+          buttonIcon={{ as: RefreshIcon, name: refreshIcon }}
+          buttonText="Sync"
+          loading={loading}
+        />
 
         {/* Search */}
         <View style={s.searchWrap}>
             <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
             <TextInput
-            style={s.searchInput}
-            placeholder="Search recipes…"
-            placeholderTextColor="#444"
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
+              style={s.searchInput}
+              placeholder="Search recipes…"
+              placeholderTextColor="#444"
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
             />
         </View>
 
@@ -131,7 +134,6 @@ export default function HomeScreen({ navigation }: any) {
         <View style={s.statsRow}>
             <StatCard value={recipes.length} label="Recipes" />
             <StatCard value={allTags.length} label="Tags" />
-            <StatCard value={connected ? '●' : '○'} label="Connected" accent={connected ? '#4caf7d' : '#555'} />
         </View>
 
         {loading && recipes.length === 0 && (
@@ -195,9 +197,6 @@ export default function HomeScreen({ navigation }: any) {
 const s = StyleSheet.create({
   container:            { flex: 1, backgroundColor: '#0f0f13' },
   scroll:               { paddingBottom: 80 },
-  header:               { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
-  headerTitle:          { fontSize: 26, fontWeight: '700', color: '#f0f0f0', letterSpacing: -0.5 },
-  headerSub:            { fontSize: 13, color: '#555', marginTop: 2 },
   searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   searchIcon:           { fontSize: 14 },
   searchInput:          { flex: 1, fontSize: 14, color: '#f0f0f0' },
@@ -210,7 +209,7 @@ const s = StyleSheet.create({
   sectionMore:          { fontSize: 12, color: '#6366f1' },
   featured:             { marginHorizontal: 16, marginBottom: 20, backgroundColor: '#1a1a1f', borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: '#2a2a2f' },
   featuredImg:          { width: '100%', height: 140 },
-  featuredImgPlaceholder: { backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
+  featuredImgPlaceholder:{ backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
   featuredEmoji:        { fontSize: 48 },
   featuredBody:         { padding: 12 },
   featuredTitle:        { fontSize: 16, fontWeight: '600', color: '#f0f0f0' },
@@ -231,6 +230,4 @@ const s = StyleSheet.create({
   emptyBtnText:         { color: '#fff', fontSize: 14, fontWeight: '600' },
   fab:                  { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: '#6366f1', alignItems: 'center', justifyContent: 'center' },
   fabText:              { color: '#fff', fontSize: 28, lineHeight: 32 },
-  syncBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingVertical: 10 },
-  syncBtnText: { color: '#6366f1', fontSize: 13, fontWeight: '600' },
 });

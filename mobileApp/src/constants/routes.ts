@@ -5,6 +5,7 @@ export const ROUTES = {
   MAIN: 'Main Screen',
   HOME: 'Home Screen',
   RECIPES: 'Recipes',
+  SETTINGS: 'Settings Screen',
 };
 
 export type RoutesKey = keyof typeof ROUTES;
