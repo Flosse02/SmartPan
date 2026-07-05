@@ -7,6 +7,8 @@ import {
     TouchableOpacity
 } from 'react-native';
 import { ICONS } from '../constants/icons';
+import { colours, spacing, radius, typography } from '../theme/theme';
+
 
 type searchBarProps = {
   placeholder: string;
@@ -25,11 +27,11 @@ export function SearchBar({
   const {as: CloseIcon, name: closeIcon} = ICONS.CLOSE;
   return (
     <View style={s.searchWrap}>
-        <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
+        <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={colours.textFaint} /></Text>
         <TextInput
             style={s.searchInput}
             placeholder={placeholder}
-            placeholderTextColor="#444"
+            placeholderTextColor={colours.textFaint}
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={handleSearch}
@@ -37,7 +39,7 @@ export function SearchBar({
         />
         {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-            <Text style={s.searchClear}><CloseIcon name={closeIcon} size={24} color={"#444"} /></Text>
+            <Text style={s.searchClear}><CloseIcon name={closeIcon} size={24} color={colours.textFaint} /></Text>
             </TouchableOpacity>
         )}
     </View>
@@ -45,8 +47,8 @@ export function SearchBar({
 }
 
 const s = StyleSheet.create({
-    searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+    searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
     searchIcon:           { fontSize: 14 },
-    searchInput:          { flex: 1, fontSize: 14, color: '#f0f0f0' },
-    searchClear:          { fontSize: 14, color: '#666', paddingLeft: 8 },
+    searchInput:          { flex: 1, fontSize: typography.body.fontSize, color: colours.text },
+    searchClear:          { fontSize: 14, color: colours.textFaint, paddingLeft: 8 },
 });

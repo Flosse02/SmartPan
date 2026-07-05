@@ -6,6 +6,7 @@ import { Recipe } from '../types';
 import { api } from '../api';
 import { useRecipes } from '../context/RecipesContext';
 import { ICONS } from '../constants/icons';
+import { colours } from '../theme/theme';
 
 function formatFraction(value: number) {
   const fractions: Record<number, string> = {
@@ -59,9 +60,18 @@ function fmtTime(min?: number) {
 
 export default function RecipeDetailScreen({ route, navigation }: any) {
   const { recipes, remove, save, update } = useRecipes();
+  const params = route.params as { id?: string; recipe?: Recipe };
+  const recipe: Recipe | undefined = recipes.find(r => r.id === params.id) || params.recipe;
+  const [servings, setServings] = useState<number>(recipe?.servings ?? 1);
 
-  const recipe = recipes.find(r => r.id === route.params.id);
-  const [servings, setServings] = useState(recipe?.servings ?? 1);
+  if (!recipe) {
+    return (
+      <View style={s.container}>
+        <Text style={{ color: colours.text, padding: 16 }}>Recipe not found</Text>
+      </View>
+    );
+  }
+
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: ArrowLeftIcon, name: arrowLeftIcon} = ICONS.ARROW_LEFT;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
@@ -123,11 +133,11 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
         <View style={s.servingsRow}>
           <Text style={s.sectionLabel}>Ingredients</Text>
           <View style={s.servingsControl}>
-            <TouchableOpacity onPress={() => setServings(s => Math.max(1, s - 1))} style={s.servingsBtn}>
+            <TouchableOpacity onPress={() => setServings(prev => Math.max(1, prev - 1))} style={s.servingsBtn}>
               <Text style={s.servingsBtnText}><MinusIcon name={minusIcon} size={16} /></Text>
             </TouchableOpacity>
             <Text style={s.servingsVal}>{servings}</Text>
-            <TouchableOpacity onPress={() => setServings(s => s + 1)} style={s.servingsBtn}>
+            <TouchableOpacity onPress={() => setServings(prev => prev + 1)} style={s.servingsBtn}>
               <Text style={s.servingsBtnText}><AddIcon name={addIcon} size={16} /></Text>
             </TouchableOpacity>
           </View>
@@ -144,7 +154,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
 
         {/* Steps */}
         <Text style={[s.sectionLabel, { marginTop: 24 }]}>Method</Text>
-        {(recipe.steps ?? []).map((step, i) => (
+        {(recipe.steps ?? []).map((step: { text: string }, i: number) => (
           <View key={i} style={s.step}>
             <View style={s.stepNum}><Text style={s.stepNumText}>{i + 1}</Text></View>
             <Text style={s.stepText}>{step.text}</Text>
@@ -158,38 +168,38 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: '#0f0f13' },
+  container:        { flex: 1, backgroundColor: colours.bg },
   hero:             { width: '100%', height: 220 },
-  heroPlaceholder:  { backgroundColor: '#1a1a1f', alignItems: 'center', justifyContent: 'center' },
+  heroPlaceholder:  { backgroundColor: colours.accentBg, alignItems: 'center', justifyContent: 'center' },
   heroEmoji:        { fontSize: 60 },
-  back:             { position: 'absolute', top: 20, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-  backText:         { color: '#fff', fontSize: 18 },
-  cookBtn:          { position: 'absolute', bottom: 4, backgroundColor: '#6365f1', borderRadius: 8, paddingHorizontal: "30%", paddingVertical: 8, alignSelf: 'center', zIndex: 999, elevation: 10 },
-  cookBtnText:      { color: '#fff', fontSize: 13, fontWeight: '600' },
-  deleteBtn:        { position: 'absolute', top: 20, right: 16, backgroundColor: '#ef4444', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-  deleteBtnText:    { color: '#fff', fontSize: 13, fontWeight: '600' },
+  back:             { position: 'absolute', top: 20, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
+  backText:         { color: colours.text, fontSize: 18 },
+  cookBtn:          { position: 'absolute', bottom: 4, backgroundColor: colours.accent, borderRadius: 8, paddingHorizontal: "30%", paddingVertical: 8, alignSelf: 'center', zIndex: 999, elevation: 10 },
+  cookBtnText:      { color: colours.text, fontSize: 13, fontWeight: '600' },
+  deleteBtn:        { position: 'absolute', top: 20, right: 16, backgroundColor: colours.error, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  deleteBtnText:    { color: colours.text, fontSize: 13, fontWeight: '600' },
   scroll:           { flex: 1 },
   scrollContent:    { padding: 16 },
-  title:            { fontSize: 22, fontWeight: '700', color: '#f0f0f0', marginBottom: 6, letterSpacing: -0.3 },
-  desc:             { fontSize: 13, color: '#888', lineHeight: 20, marginBottom: 10 },
+  title:            { fontSize: 22, fontWeight: '700', color: colours.text, marginBottom: 6, letterSpacing: -0.3 },
+  desc:             { fontSize: 13, color: colours.textGhost, lineHeight: 20, marginBottom: 10 },
   metaRow:          { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 20 },
-  badge:            { backgroundColor: '#1e1e24', borderRadius: 5, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 0.5, borderColor: '#2a2a2f' },
-  badgeText:        { fontSize: 11, color: '#888' },
+  badge:            { backgroundColor: colours.surface, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 0.5, borderColor: colours.border } ,
+  badgeText:        { fontSize: 11, color: colours.textGhost },
   badgeTag:         { backgroundColor: 'rgba(99,102,241,0.12)', borderColor: 'rgba(99,102,241,0.25)' },
-  badgeTagText:     { color: '#6366f1' },
-  sectionLabel:     { fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 },
+  badgeTagText:     { color: colours.accent },
+  sectionLabel:     { fontSize: 11, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 },
   servingsRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   servingsControl:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  servingsBtn:      { width: 28, height: 28, borderRadius: 6, borderWidth: 0.5, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
-  servingsBtnText:  { color: '#aaa', fontSize: 16, lineHeight: 20 },
-  servingsVal:      { fontSize: 14, color: '#f0f0f0', minWidth: 24, textAlign: 'center' },
-  ingredient:       { flexDirection: 'row', gap: 12, paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: '#1e1e24' },
-  ingredientAmount: { fontSize: 13, color: '#6366f1', minWidth: 80, fontVariant: ['tabular-nums'] },
-  ingredientName:   { fontSize: 13, color: '#d0d0d0', flex: 1 },
+  servingsBtn:      { width: 28, height: 28, borderRadius: 6, borderWidth: 0.5, borderColor: colours.border, alignItems: 'center', justifyContent: 'center' },
+  servingsBtnText:  { color: colours.textGhost, fontSize: 16, lineHeight: 20 },
+  servingsVal:      { fontSize: 14, color: colours.text, minWidth: 24, textAlign: 'center' },
+  ingredient:       { flexDirection: 'row', gap: 12, paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: colours.border } ,
+  ingredientAmount: { fontSize: 13, color: colours.accent, minWidth: 80, fontVariant: ['tabular-nums'] },
+  ingredientName:   { fontSize: 13, color: colours.textGhost, flex: 1 },
   step:             { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  stepNum:          { width: 24, height: 24, borderRadius: 12, borderWidth: 0.5, borderColor: '#6366f1', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
-  stepNumText:      { fontSize: 11, color: '#6366f1' },
-  stepText:         { fontSize: 14, color: '#d0d0d0', lineHeight: 22, flex: 1 },
-  editBtn:          { position: 'absolute', top: 20, right: 96, backgroundColor: '#1e1e24', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 0.5, borderColor: '#2a2a2f' },
-  editBtnText:      { color: '#f0f0f0', fontSize: 13, fontWeight: '600' },
+  stepNum:          { width: 24, height: 24, borderRadius: 12, borderWidth: 0.5, borderColor: colours.accent, alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
+  stepNumText:      { fontSize: 11, color: colours.accent },
+  stepText:         { fontSize: 14, color: colours.textGhost, lineHeight: 22, flex: 1 },
+  editBtn:          { position: 'absolute', top: 20, right: 96, backgroundColor: colours.surface, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 0.5, borderColor: colours.border } ,
+  editBtnText:      { color: colours.text, fontSize: 13, fontWeight: '600' },
 });

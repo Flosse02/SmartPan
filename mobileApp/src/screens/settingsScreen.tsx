@@ -5,6 +5,7 @@ import {
   StyleSheet
 } from 'react-native';
 import { Header } from '../util/header';
+import { colours } from '../theme/theme';
 
 export default function SettingsScreen({ navigation }: any) {
 
@@ -21,6 +22,6 @@ export default function SettingsScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: '#0f0f13' },
+  container:            { flex: 1, backgroundColor: colours.bg },
   scroll:               { paddingBottom: 80 },
 });

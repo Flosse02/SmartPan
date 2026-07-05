@@ -8,6 +8,7 @@ import {
     AccessibilityRole 
 } from 'react-native';
 import { IconType } from '../constants/icons';
+import { colours, typography } from '../theme/theme';
 
 type HeaderProps = {
   title: string;
@@ -73,12 +74,12 @@ export function Header({
 const s = StyleSheet.create({
   header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   headerLeft:           { flexShrink: 1 },
-  headerTitle:          { fontSize: 26, fontWeight: '700', color: '#f0f0f0', letterSpacing: -0.5 },
-  headerSub:            { fontSize: 13, color: '#555', marginTop: 2 },
+  headerTitle:          { fontSize: typography.title.fontSize, fontWeight: typography.title.fontWeight, color: colours.text, letterSpacing: -0.5 },
+  headerSub:            { fontSize: typography.subtitle.fontSize, color: colours.textGhost, marginTop: 2 },
   headerRight:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
   dot:                  { width: 7, height: 7, borderRadius: 4 },
-  dotOn:                { backgroundColor: '#4caf7d' },
-  dotOff:               { backgroundColor: '#444' },
-  actionBtn:              { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#1a1a1f', borderRadius: 8, borderWidth: 0.5, borderColor: '#2a2a2f', paddingHorizontal: 10, paddingVertical: 7 },
-  actionBtnText:         { color: '#6366f1', fontSize: 11, fontWeight: '600' },
+  dotOn:                { backgroundColor: colours.accent },
+  dotOff:               { backgroundColor: colours.textGhost },
+  actionBtn:              { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colours.surface, borderRadius: 8, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 10, paddingVertical: 7 },
+  actionBtnText:         { color: colours.accent, fontSize: typography.small.fontSize, fontWeight: typography.small.fontWeight },
 });

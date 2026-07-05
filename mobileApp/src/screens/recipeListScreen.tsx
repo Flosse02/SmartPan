@@ -3,7 +3,6 @@ import {
   View, 
   Text, 
   FlatList, 
-  TextInput, 
   TouchableOpacity,
   StyleSheet, 
   ActivityIndicator, 
@@ -15,6 +14,7 @@ import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
+import { colours } from '../theme/theme';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -57,8 +57,6 @@ export default function RecipeListScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
 
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
-  const {as: SearchIcon, name: searchIcon} = ICONS.SEARCH;
-  const {as: CloseIcon, name: closeIcon} = ICONS.CLOSE;
 
   const filtered = query
     ? recipes.filter(r => r.title.toLowerCase().includes(query.toLowerCase()) || r.tags.some(t => t.toLowerCase().includes(query.toLowerCase())))
@@ -85,7 +83,7 @@ export default function RecipeListScreen({ navigation }: any) {
       {error && <Text style={s.error}>{error}</Text>}
 
       {loading && recipes.length === 0
-        ? <ActivityIndicator style={{ marginTop: 40 }} color="#6366f1" />
+        ? <ActivityIndicator style={{ marginTop: 40 }} color={colours.accent} />
         : filtered.length === 0
         ? <Text style={s.empty}>{query ? 'No recipes match your search' : 'No recipes yet — add one!'}</Text>
         : (
@@ -96,7 +94,7 @@ export default function RecipeListScreen({ navigation }: any) {
             numColumns={2}
             columnWrapperStyle={s.row}
             contentContainerStyle={s.list}
-            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => refresh()} tintColor="#6366f1" />}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => refresh()} tintColor={colours.accent} />}
             renderItem={({ item }) => (
               <RecipeCard recipe={item} onPress={() => navigation.navigate('RecipeDetail', { id: item.id })} />
             )}
@@ -108,20 +106,20 @@ export default function RecipeListScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: '#0f0f13' },
+  container:            { flex: 1, backgroundColor: colours.bg },
   list:                 { paddingHorizontal: 12, paddingBottom: 32 },
   row:                  { gap: 10, marginBottom: 10 },
-  card:                 { flex: 1, backgroundColor: '#1a1a1f', borderRadius: 10, overflow: 'hidden', borderWidth: 0.5, borderColor: '#2a2a2f' },
+  card:                 { flex: 1, backgroundColor: colours.surface, borderRadius: 10, overflow: 'hidden', borderWidth: 0.5, borderColor: colours.border },
   cardImage:            { width: '100%', height: 110 },
-  cardImagePlaceholder: { backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
+  cardImagePlaceholder: { backgroundColor: colours.accentBg, alignItems: 'center', justifyContent: 'center' },
   cardImageEmoji:       { fontSize: 36 },
   cardBody:             { padding: 10, gap: 5 },
-  cardTitle:            { fontSize: 13, fontWeight: '600', color: '#f0f0f0', lineHeight: 18 },
+  cardTitle:            { fontSize: 13, fontWeight: '600', color: colours.text, lineHeight: 18 },
   cardMeta:             { flexDirection: 'row', gap: 10 },
-  cardMetaText:         { fontSize: 11, color: '#666' },
+  cardMetaText:         { fontSize: 11, color: colours.textGhost },
   tagRow:               { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   tag:                  { backgroundColor: 'rgba(99,102,241,0.15)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  tagText:              { fontSize: 10, color: '#6366f1' },
-  empty:                { textAlign: 'center', color: '#555', fontSize: 13, marginTop: 60 },
-  error:                { color: '#e05858', fontSize: 12, textAlign: 'center', marginHorizontal: 16, marginBottom: 8 },
+  tagText:              { fontSize: 10, color: colours.accent },
+  empty:                { textAlign: 'center', color: colours.textGhost, fontSize: 13, marginTop: 60 },
+  error:                { color: colours.error, fontSize: 12, textAlign: 'center', marginHorizontal: 16, marginBottom: 8 },
 });

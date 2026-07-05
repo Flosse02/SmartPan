@@ -14,6 +14,7 @@ import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
+import { colours } from '../theme/theme';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -96,17 +97,13 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   const {as: ArrowRightIcon, name: arrowRightIcon} = ICONS.ARROW_RIGHT;
-  const {as: SearchIcon, name: searchIcon} = ICONS.SEARCH;
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
   const {as: RefreshIcon, name: refreshIcon} = ICONS.REFRESH;
 
   return (
     <View style={s.container}>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        
-        {/* Header */}
-
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <Header 
           title="SmartPan"
           subtitle="What are we cooking today?"
@@ -117,25 +114,12 @@ export default function HomeScreen({ navigation }: any) {
           loading={loading}
         />
 
-        {/* Search */}
         <SearchBar
           placeholder="Search recipes…"
           query={query}
           setQuery={setQuery}
           handleSearch={handleSearch}
         />
-        {/* <View style={s.searchWrap}>
-            <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
-            <TextInput
-              style={s.searchInput}
-              placeholder="Search recipes…"
-              placeholderTextColor="#444"
-              value={query}
-              onChangeText={setQuery}
-              onSubmitEditing={handleSearch}
-              returnKeyType="search"
-            />
-        </View> */}
 
         {/* Stats */}
         <View style={s.statsRow}>
@@ -144,7 +128,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
 
         {loading && recipes.length === 0 && (
-            <ActivityIndicator color="#6366f1" style={{ marginTop: 40 }} />
+            <ActivityIndicator color={colours.accent} style={{ marginTop: 40 }} />
         )}
 
         {/* Featured */}
@@ -202,39 +186,39 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: '#0f0f13' },
+  container:            { flex: 1, backgroundColor: colours.bg },
   scroll:               { paddingBottom: 80 },
-  searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 14, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   searchIcon:           { fontSize: 14 },
-  searchInput:          { flex: 1, fontSize: 14, color: '#f0f0f0' },
+  searchInput:          { flex: 1, fontSize: 14, color: colours.text },
   statsRow:             { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 20 },
-  statCard:             { flex: 1, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', padding: 12, alignItems: 'center' },
-  statVal:              { fontSize: 20, fontWeight: '600', color: '#6366f1' },
-  statLabel:            { fontSize: 9, color: '#555', textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 },
+  statCard:             { flex: 1, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, padding: 12, alignItems: 'center' },
+  statVal:              { fontSize: 20, fontWeight: '600', color: colours.accent },
+  statLabel:            { fontSize: 9, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 },
   sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 10 },
-  sectionTitle:         { fontSize: 10, color: '#555', textTransform: 'uppercase', letterSpacing: 1.5, paddingHorizontal: 16, marginBottom: 10 },
-  sectionMore:          { fontSize: 12, color: '#6366f1' },
-  featured:             { marginHorizontal: 16, marginBottom: 20, backgroundColor: '#1a1a1f', borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: '#2a2a2f' },
+  sectionTitle:         { fontSize: 10, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, paddingHorizontal: 16, marginBottom: 10 },
+  sectionMore:          { fontSize: 12, color: colours.accent },
+  featured:             { marginHorizontal: 16, marginBottom: 20, backgroundColor: colours.surface, borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: colours.border },
   featuredImg:          { width: '100%', height: 140 },
-  featuredImgPlaceholder:{ backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
+  featuredImgPlaceholder:{ backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
   featuredEmoji:        { fontSize: 48 },
   featuredBody:         { padding: 12 },
-  featuredTitle:        { fontSize: 16, fontWeight: '600', color: '#f0f0f0' },
-  featuredMeta:         { fontSize: 12, color: '#555', marginTop: 4 },
+  featuredTitle:        { fontSize: 16, fontWeight: '600', color: colours.text },
+  featuredMeta:         { fontSize: 12, color: colours.textGhost, marginTop: 4 },
   recentRow:            { paddingLeft: 16, paddingRight: 8, gap: 10 },
-  miniCard:             { width: 130, backgroundColor: '#1a1a1f', borderRadius: 10, overflow: 'hidden', borderWidth: 0.5, borderColor: '#2a2a2f' },
+  miniCard:             { width: 130, backgroundColor: colours.surface, borderRadius: 10, overflow: 'hidden', borderWidth: 0.5, borderColor: colours.border },
   miniImg:              { width: '100%', height: 80 },
-  miniImgPlaceholder:   { backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
+  miniImgPlaceholder:   { backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
   miniEmoji:            { fontSize: 28 },
   miniBody:             { padding: 8 },
-  miniTitle:            { fontSize: 12, fontWeight: '500', color: '#e0e0e0', lineHeight: 16 },
-  miniMeta:             { fontSize: 10, color: '#555', marginTop: 3 },
+  miniTitle:            { fontSize: 12, fontWeight: '500', color: colours.text, lineHeight: 16 },
+  miniMeta:             { fontSize: 10, color: colours.textGhost, marginTop: 3 },
   empty:                { alignItems: 'center', paddingTop: 40, paddingHorizontal: 32 },
   emptyEmoji:           { fontSize: 48, marginBottom: 12 },
-  emptyTitle:           { fontSize: 16, fontWeight: '600', color: '#f0f0f0', marginBottom: 6 },
-  emptyText:            { fontSize: 13, color: '#555', textAlign: 'center', lineHeight: 20 },
-  emptyBtn:             { marginTop: 20, backgroundColor: '#6366f1', borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
+  emptyTitle:           { fontSize: 16, fontWeight: '600', color: colours.text, marginBottom: 6 },
+  emptyText:            { fontSize: 13, color: colours.textGhost, textAlign: 'center', lineHeight: 20 },
+  emptyBtn:             { marginTop: 20, backgroundColor: colours.accent, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
   emptyBtnText:         { color: '#fff', fontSize: 14, fontWeight: '600' },
-  fab:                  { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: '#6366f1', alignItems: 'center', justifyContent: 'center' },
+  fab:                  { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: colours.accent, alignItems: 'center', justifyContent: 'center' },
   fabText:              { color: '#fff', fontSize: 28, lineHeight: 32 },
 });
