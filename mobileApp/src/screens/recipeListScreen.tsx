@@ -14,6 +14,7 @@ import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
+import { SearchBar } from '../util/searchBar';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -65,7 +66,6 @@ export default function RecipeListScreen({ navigation }: any) {
 
   return (
     <View style={s.container}>
-      {/* Header */}
       <Header 
         title="Recipes"
         subtitle="Search all recipes"
@@ -76,22 +76,11 @@ export default function RecipeListScreen({ navigation }: any) {
         loading={loading}
       />
 
-      {/* Search */}
-      <View style={s.searchWrap}>
-        <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
-        <TextInput
-          style={s.searchInput}
-          placeholder="Search recipes…"
-          placeholderTextColor="#666"
-          value={query}
-          onChangeText={setQuery}
-        />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={() => setQuery('')}>
-            <Text style={s.searchClear}><CloseIcon name={closeIcon} size={24} color={"#444"} /></Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <SearchBar
+        placeholder="Search recipes…"
+        query={query}
+        setQuery={setQuery}
+      />
 
       {error && <Text style={s.error}>{error}</Text>}
 
@@ -120,10 +109,6 @@ export default function RecipeListScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   container:            { flex: 1, backgroundColor: '#0f0f13' },
-  searchWrap:           { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12, backgroundColor: '#1a1a1f', borderRadius: 10, borderWidth: 0.5, borderColor: '#2a2a2f', paddingHorizontal: 12, paddingVertical: 8 },
-  searchIcon:           { fontSize: 14, marginRight: 8 },
-  searchInput:          { flex: 1, fontSize: 14, color: '#f0f0f0' },
-  searchClear:          { fontSize: 14, color: '#666', paddingLeft: 8 },
   list:                 { paddingHorizontal: 12, paddingBottom: 32 },
   row:                  { gap: 10, marginBottom: 10 },
   card:                 { flex: 1, backgroundColor: '#1a1a1f', borderRadius: 10, overflow: 'hidden', borderWidth: 0.5, borderColor: '#2a2a2f' },

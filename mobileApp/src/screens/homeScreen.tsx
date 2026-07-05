@@ -13,6 +13,7 @@ import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
+import { SearchBar } from '../util/searchBar';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -117,7 +118,13 @@ export default function HomeScreen({ navigation }: any) {
         />
 
         {/* Search */}
-        <View style={s.searchWrap}>
+        <SearchBar
+          placeholder="Search recipes…"
+          query={query}
+          setQuery={setQuery}
+          handleSearch={handleSearch}
+        />
+        {/* <View style={s.searchWrap}>
             <Text style={s.searchIcon}><SearchIcon name={searchIcon} size={24} color={"#444"} /></Text>
             <TextInput
               style={s.searchInput}
@@ -128,7 +135,7 @@ export default function HomeScreen({ navigation }: any) {
               onSubmitEditing={handleSearch}
               returnKeyType="search"
             />
-        </View>
+        </View> */}
 
         {/* Stats */}
         <View style={s.statsRow}>
