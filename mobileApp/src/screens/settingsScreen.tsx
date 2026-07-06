@@ -156,7 +156,22 @@ export default function SettingsScreen({ navigation }: any) {
           <Text style={styles.sectionLabel}>Data</Text>
  
           <TouchableOpacity
-            style={styles.dedupeBtn}
+            style={[styles.dedupeBtn]}
+            onPress={handleDedupe}
+            disabled={deduping}
+          >
+            {deduping
+              ? <ActivityIndicator size="small" color={colours.accent} />
+              : <Text style={styles.dedupeBtnText}>Clean up duplicates</Text>
+            }
+          </TouchableOpacity>
+
+          <Text style={styles.dedupeHint}>
+            Removes duplicate recipes from the server, keeping the oldest copy of each.
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.dedupeBtn, { marginTop: 12 }]}
             onPress={handleReset}
             disabled={resetting}
           >
@@ -168,31 +183,15 @@ export default function SettingsScreen({ navigation }: any) {
           <Text style={styles.dedupeHint}>
             Clears everything cached locally and re-downloads fresh from the server.
           </Text>
- 
-          <TouchableOpacity
-            style={[styles.dedupeBtn, { marginTop: 12 }]}
-            onPress={handleDedupe}
-            disabled={deduping}
-          >
-            {deduping
-              ? <ActivityIndicator size="small" color={colours.accent} />
-              : <Text style={styles.dedupeBtnText}>Clean up duplicates</Text>
-            }
-          </TouchableOpacity>
-          <Text style={styles.dedupeHint}>
-            Removes duplicate recipes from the server, keeping the oldest copy of each.
-          </Text>
+
         </View>
-
-
-        <TouchableOpacity
+      </ScrollView>
+      <TouchableOpacity
           style={styles.saveButton}
           onPress={handleSave}
         >
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
-
-      </ScrollView>
     </View>
   );
 }
