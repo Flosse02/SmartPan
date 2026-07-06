@@ -8,6 +8,7 @@ import {
   Image, 
   TextInput, 
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
@@ -15,6 +16,9 @@ import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
 import { useTheme } from '../theme/Themecontext';
+
+
+const MEAL_OPTIONS = ['Any', 'Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack'];
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -96,6 +100,8 @@ export default function HomeScreen({ navigation }: any) {
 
   const { recipes, remove, save, update, connected, loading, refresh } = useRecipes();
   const [query, setQuery] = useState('');
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [noMatchMessage, setNoMatchMessage] = useState<string | null>(null);
 
   const allTags   = Array.from(new Set(recipes.flatMap(r => r.tags)));
   const featured  = recipes[0] ?? null;
@@ -109,6 +115,24 @@ export default function HomeScreen({ navigation }: any) {
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
   const {as: RefreshIcon, name: refreshIcon} = ICONS.REFRESH;
+  const {as: RandomIcon, name: randomIcon} = ICONS.RANDOM;
+
+  const pickRandom = (category: string) => {
+    const pool = category === 'Any'
+      ? recipes
+      : recipes.filter(r => r.tags.some(t => t.toLowerCase() === category.toLowerCase()));
+
+    if (pool.length === 0) {
+      setNoMatchMessage(`No ${category.toLowerCase()} recipes yet`);
+      return;
+    }
+
+    const random = pool[Math.floor(Math.random() * pool.length)];
+    setPickerVisible(false);
+    navigation.navigate('RecipeDetail', { id: random.id });
+  };
+
+
 
   return (
     <View style={s.container}>
@@ -187,9 +211,43 @@ export default function HomeScreen({ navigation }: any) {
         </ScrollView>
 
         {/* FAB */}
-        <TouchableOpacity style={s.fab} onPress={() => navigation.navigate('AddRecipe')}>
-            <Text style={s.fabText}><AddIcon name={addIcon} size={24} /></Text>
+        <TouchableOpacity style={s.afab} onPress={() => navigation.navigate('AddRecipe')}>
+            <Text style={s.afabText}><AddIcon name={addIcon} size={24} /></Text>
         </TouchableOpacity>
+        <TouchableOpacity style={s.rfab} onPress={() => { setNoMatchMessage(null); setPickerVisible(true); }}>
+          <Text style={s.rfabText}><RandomIcon name={randomIcon} size={24} /></Text>
+        </TouchableOpacity>
+
+         <Modal
+        visible={pickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPickerVisible(false)}
+      >
+        <TouchableOpacity
+          style={s.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setPickerVisible(false)}
+        >
+          <View style={s.modalCard}>
+            <Text style={s.modalTitle}>What are we feeling?</Text>
+            {noMatchMessage && <Text style={s.modalNoMatch}>{noMatchMessage}</Text>}
+            {MEAL_OPTIONS.map(opt => (
+              <TouchableOpacity
+                key={opt}
+                style={s.modalOption}
+                onPress={() => pickRandom(opt)}
+              >
+                <Text style={s.modalOptionText}>{opt}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={s.modalCancel} onPress={() => setPickerVisible(false)}>
+              <Text style={s.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </View>
   );
 }
@@ -228,6 +286,16 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   emptyText:            { fontSize: 13, color: colours.textGhost, textAlign: 'center', lineHeight: 20 },
   emptyBtn:             { marginTop: 20, backgroundColor: colours.accent, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
   emptyBtnText:         { color: '#fff', fontSize: 14, fontWeight: '600' },
-  fab:                  { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: colours.accent, alignItems: 'center', justifyContent: 'center' },
-  fabText:              { color: '#fff', fontSize: 28, lineHeight: 32 },
-});
+  afab:                 { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: colours.accent, alignItems: 'center', justifyContent: 'center' },
+  afabText:             { color: '#fff', fontSize: 28, lineHeight: 32 },
+  rfab:                 { position: 'absolute', bottom: 24, left: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: colours.accent, alignItems: 'center', justifyContent: 'center' },
+  rfabText:             { color: '#fff', fontSize: 28, lineHeight: 32 },
+  modalBackdrop:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modalCard:            { backgroundColor: colours.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 32, gap: 8 },
+  modalTitle:           { fontSize: 16, fontWeight: '600', color: colours.text, marginBottom: 8, textAlign: 'center' },
+  modalOption:          { paddingVertical: 14, borderRadius: 10, backgroundColor: colours.bg, alignItems: 'center' },
+  modalOptionText:      { fontSize: 15, color: colours.text, fontWeight: '500' },
+  modalCancel:          { paddingVertical: 14, marginTop: 4, alignItems: 'center' },
+  modalCancelText:      { fontSize: 15, color: colours.textGhost },
+  modalNoMatch:         { fontSize: 13, color: colours.error, textAlign: 'center', marginBottom: 8 },
+}); 
