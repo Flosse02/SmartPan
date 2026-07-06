@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Header } from '../util/header';
 import { useTheme } from '../theme/Themecontext';
@@ -22,6 +24,9 @@ const OPTIONS: { label: string; value: 'system' | 'light' | 'dark' }[] = [
 export default function SettingsScreen({ navigation }: any) {
   const { colours, mode, setMode } = useTheme();
   const { config, updateConfig } = useConfig();
+  const { dedupe, resetLocal } = useRecipes();
+  const [deduping, setDeduping] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [ipAddress, setIpAddress] = useState('');
   const [port, setPort] = useState('');
   const styles = s(colours);
@@ -39,6 +44,62 @@ export default function SettingsScreen({ navigation }: any) {
     updateConfig(ipAddress, port)
     console.log("Saving")
   };
+
+  const handleReset = () => {
+    Alert.alert(
+      'Delete all recipes on this phone?',
+      'This clears everything cached on this device and re-downloads your recipe list fresh from the server. Your recipes on the server are NOT affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete & resync',
+          style: 'destructive',
+          onPress: async () => {
+            setResetting(true);
+            try {
+              await resetLocal();
+              Alert.alert('Done', 'Local data cleared and resynced from the server.');
+            } catch (e: any) {
+              Alert.alert('Something went wrong', e.message ?? 'Please try again.');
+            } finally {
+              setResetting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+ 
+  const handleDedupe = () => {
+    Alert.alert(
+      'Clean up duplicates?',
+      'This will remove duplicate recipes from the server, keeping the oldest copy of each. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clean up',
+          style: 'destructive',
+          onPress: async () => {
+            setDeduping(true);
+            try {
+              const removed = await dedupe();
+              Alert.alert(
+                removed > 0 ? 'Done' : 'No duplicates found',
+                removed > 0
+                  ? `Removed ${removed} duplicate recipe${removed === 1 ? '' : 's'}.`
+                  : 'Your recipe list is already clean.'
+              );
+            } catch (e: any) {
+              Alert.alert('Something went wrong', e.message ?? 'Please try again.');
+            } finally {
+              setDeduping(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
 
   return (
     <View style={styles.container}>
@@ -91,6 +152,39 @@ export default function SettingsScreen({ navigation }: any) {
           />
         </View>
 
+        <View style={styles.settingContainer}>
+          <Text style={styles.sectionLabel}>Data</Text>
+ 
+          <TouchableOpacity
+            style={styles.dedupeBtn}
+            onPress={handleReset}
+            disabled={resetting}
+          >
+            {resetting
+              ? <ActivityIndicator size="small" color={colours.error} />
+              : <Text style={styles.dedupeBtnText}>Delete all recipes on this phone</Text>
+            }
+          </TouchableOpacity>
+          <Text style={styles.dedupeHint}>
+            Clears everything cached locally and re-downloads fresh from the server.
+          </Text>
+ 
+          <TouchableOpacity
+            style={[styles.dedupeBtn, { marginTop: 12 }]}
+            onPress={handleDedupe}
+            disabled={deduping}
+          >
+            {deduping
+              ? <ActivityIndicator size="small" color={colours.accent} />
+              : <Text style={styles.dedupeBtnText}>Clean up duplicates</Text>
+            }
+          </TouchableOpacity>
+          <Text style={styles.dedupeHint}>
+            Removes duplicate recipes from the server, keeping the oldest copy of each.
+          </Text>
+        </View>
+
+
         <TouchableOpacity
           style={styles.saveButton}
           onPress={handleSave}
@@ -120,4 +214,7 @@ const s = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create
   dot:                  { width: 16, height: 16, borderRadius: 12 },
   dotOn:                { backgroundColor: colours.accent },
   dotOff:               { backgroundColor: colours.textGhost },
+  dedupeBtn:            { marginHorizontal: 16, backgroundColor: colours.surface, borderWidth: 0.5, borderColor: colours.error, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+  dedupeBtnText:        { color: colours.error, fontSize: 13, fontWeight: '600' },
+  dedupeHint:           { fontSize: 11, color: colours.textGhost, paddingHorizontal: 16, marginTop: 8, lineHeight: 16 },
 });
