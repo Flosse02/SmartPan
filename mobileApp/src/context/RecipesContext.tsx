@@ -1,11 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../api';
+import { localStore } from '../localStore';
 import { Recipe } from '../types';
 import { useConfig } from '../context/ConfigContext';
-
-
-const CACHE_KEY = 'smartpan_recipes';
 
 type RecipesContextType = {
   recipes: Recipe[];
@@ -13,10 +10,12 @@ type RecipesContextType = {
   error: string | null;
   connected: boolean;
 
-  refresh: () => Promise<void>;   // ← renamed from fetch
+  refresh: () => Promise<void>;
   save: (data: Omit<Recipe, 'id' | 'createdAt'>) => Promise<void>;
   update: (data: Recipe) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  dedupe: () => Promise<number>;
+  resetLocal: () => Promise<void>;
 };
 
 const RecipesContext = createContext<RecipesContextType | null>(null);
@@ -31,30 +30,21 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(CACHE_KEY).then(raw => {
-      if (raw) setRecipes(JSON.parse(raw));
-    });
+    localStore.getAll().then(setRecipes);
   }, []);
 
-  const cache = useCallback((data: Recipe[]) => {
-    AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  }, []);
-
-  const refresh = useCallback(async () => {  
+  const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
       const data = await api.getRecipes();
       setRecipes(data);
-      cache(data);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [cache]);
-
+  }, []);
 
   useEffect(() => {
     if (!config) return;
@@ -71,7 +61,22 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
-      ws.onopen = () => setConnected(true);
+      ws.onopen = () => {
+        console.log('[WS] connected');
+        setConnected(true);
+
+        // Push anything created while offline, then pull a fresh merged
+        // list so both this device and the dashboard end up in sync.
+        (async () => {
+          try {
+            await api.pushUnsyncedRecipes();
+            const data = await api.getRecipes();
+            setRecipes(data);
+          } catch (e) {
+            console.log('Reconnect sync failed, will retry next reconnect');
+          }
+        })();
+      };
 
       ws.onclose = () => {
         setConnected(false);
@@ -84,6 +89,29 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
       ws.onmessage = (e) => {
         console.log('[WS] message', e.data);
+        try {
+          const msg = JSON.parse(e.data);
+
+          // id-based dedup: recipe ids are always the same server-issued
+          // UUID everywhere (phone, dashboard, this broadcast), so "does
+          // this id already exist in state?" is a reliable, simple guard
+          // against the echo of our own optimistic add showing up twice.
+          if (msg.type === 'recipe_added') {
+            setRecipes(prev =>
+              prev.some(r => r.id === msg.recipe.id) ? prev : [msg.recipe, ...prev]
+            );
+          }
+
+          if (msg.type === 'recipe_updated') {
+            setRecipes(prev => prev.map(r => (r.id === msg.recipe.id ? msg.recipe : r)));
+          }
+
+          if (msg.type === 'recipe_deleted') {
+            setRecipes(prev => prev.filter(r => r.id !== msg.id));
+          }
+        } catch (err) {
+          console.log('[WS] failed to parse message', err);
+        }
       };
     };
 
@@ -96,82 +124,86 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     };
   }, [config]);
 
-
   useEffect(() => {
     refresh();
-  }, [refresh])
+  }, [refresh]);
 
   const save = useCallback(async (data: Omit<Recipe, 'id' | 'createdAt'>) => {
-  const tempRecipe: Recipe = {
-    ...data,
-    id: `temp-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-  } as Recipe;
+    const tempRecipe: Recipe = {
+      ...data,
+      id: `temp-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    } as Recipe;
 
-  setRecipes(prev => {
-    const next = [tempRecipe, ...prev];
-    cache(next);
-    return next;
-  });
+    setRecipes(prev => [tempRecipe, ...prev]);
 
-  (async () => {
-    try {
-      const real = await api.saveRecipe(data);
-
-      setRecipes(prev => {
-        const next = prev.map(r =>
-          r.id === tempRecipe.id ? real : r
-        );
-        cache(next);
-        return next;
-      });
-    } catch (e) {
-      console.log('Pi offline - saved locally only');
-    }
-  })();
-}, [cache]);
+    (async () => {
+      try {
+        const real = await api.saveRecipe(data);
+        setRecipes(prev => prev.map(r => (r.id === tempRecipe.id ? real : r)));
+      } catch (e) {
+        console.log('Pi offline - saved locally only');
+      }
+    })();
+  }, []);
 
   const update = useCallback(async (data: Recipe) => {
     const recipe = await api.updateRecipe(data);
+    setRecipes(prev => prev.map(r => (r.id === recipe.id ? recipe : r)));
+  }, []);
 
-    setRecipes(prev => {
-      const next = prev.map(r =>
-        r.id === recipe.id ? recipe : r
-      );
-      cache(next);
-      return next;
-    });
-  }, [cache]);
-
-  // -----------------------
-  // DELETE (OPTIMISTIC)
-  // -----------------------
   const remove = useCallback(async (id: string) => {
-    // 1. optimistic UI update
-    setRecipes(prev => {
-      const next = prev.filter(r => r.id !== id);
-      cache(next);
-      return next;
+    setRecipes(prev => prev.filter(r => r.id !== id));
+    api.deleteRecipe(id).catch(() => {
+      console.log('Pi offline - delete not synced');
     });
+  }, []);
 
-    // 2. background sync (non-blocking)
-    api.deleteRecipe(id)
-      .catch(() => {
-        console.log('Pi offline - delete not synced');
-      });
-  }, [cache]);
+  const dedupe = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const removedCount = await api.dedupeRecipes();
+      const fresh = await localStore.getAll();
+      setRecipes(fresh);
+      return removedCount;
+    } catch (e: any) {
+      setError(e.message);
+      return 0;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const resetLocal = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await localStore.clearAll();
+      const fresh = await api.getRecipes();
+      setRecipes(fresh);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
-    <RecipesContext.Provider value={{
-      recipes,
-      loading,
-      error,
-      connected,
-      refresh,
-      save,
-      update,
-      remove,
-    }}>
+    <RecipesContext.Provider
+      value={{
+        recipes,
+        loading,
+        error,
+        connected,
+        refresh,
+        save,
+        update,
+        remove,
+        dedupe,
+        resetLocal,
+      }}
+    >
       {children}
     </RecipesContext.Provider>
   );

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setApiBaseUrl } from '../config/apiConfig';
 
 const IP_KEY = 'smarthome_ip';
 const PORT_KEY = 'smarthome_port';
@@ -37,7 +38,9 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const finalIp = ip ?? '192.168.1.100';
     const finalPort = port ?? '3000';
 
-    setConfig(buildConfig(finalIp, finalPort));
+    const next = buildConfig(finalIp, finalPort);
+    setConfig(next);
+    setApiBaseUrl(next.baseUrl);
   }, []);
 
   useEffect(() => {
@@ -45,9 +48,11 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
   }, [load]);
 
   const updateConfig = useCallback(async (ip: string, port: string) => {
-    await AsyncStorage.setItem('smarthome_ip', ip);
-    await AsyncStorage.setItem('smarthome_port', port);
-    setConfig(buildConfig(ip, port));
+    await AsyncStorage.setItem(IP_KEY, ip);
+    await AsyncStorage.setItem(PORT_KEY, port);
+    const next = buildConfig(ip, port);
+    setConfig(next);
+    setApiBaseUrl(next.baseUrl);
   }, []);
 
   return (

@@ -34,6 +34,7 @@ export const ICONS = {
   CLOSE: {as: MaterialCommunityIcons , name: 'close'},
   ADD: {as: MaterialCommunityIcons , name: 'plus'},
   MINUS: {as: MaterialCommunityIcons , name: 'minus'},
+  RANDOM: {as: MaterialCommunityIcons , name: 'shuffle'},
   TICK: {as: MaterialCommunityIcons , name: 'check'},
   HEAD: {as: MaterialIcons , name: 'person'},
   TIMER: {as: MaterialIcons , name: 'timer'},
