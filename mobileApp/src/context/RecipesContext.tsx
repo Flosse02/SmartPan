@@ -87,7 +87,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
             await api.pushPendingEdits();
             const data = await api.getRecipes();
             setRecipes(withPrefs(data, prefsRef.current));
-          } catch (e) {
+          } catch {
             console.log('Reconnect sync failed, will retry next reconnect');
           }
         })();
@@ -164,7 +164,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         const prefs = await recipePrefs.rekey(tempRecipe.id, real.id);
         prefsRef.current = prefs;
         setRecipes(prev => prev.map(r => (r.id === tempRecipe.id ? withPrefs([real], prefs)[0] : r)));
-      } catch (e) {
+      } catch {
         console.log('Pi offline - saved locally only');
       }
     })();

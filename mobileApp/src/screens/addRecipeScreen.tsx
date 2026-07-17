@@ -24,7 +24,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
   const editingRecipe = route.params?.recipe;
   const isEditing = !!editingRecipe;
 
-  const { recipes, remove, save, update } = useRecipes()
+  const { save, update } = useRecipes()
   const [form,      setForm]      = useState(EMPTY);
   const [tab,       setTab]       = useState<'manual' | 'url'>('manual');
   const [url,       setUrl]       = useState('');

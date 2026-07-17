@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StatusBar } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import { RecipesProvider } from './src/context/RecipesContext';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -37,7 +37,7 @@ function MainTabs() {
         tabBarActiveTintColor:   colours.accent,
         tabBarInactiveTintColor: colours.textGhost,
         tabBarLabelStyle: { fontSize: 11, marginBottom: 2 },
-        tabBarIcon: ({ color, size, focused }) =>
+        tabBarIcon: ({ color, focused }) =>
           getBottomTabsIcon(route.name, focused, color),
       })}
     >
@@ -52,12 +52,13 @@ function MainTabs() {
 
 function AppContent() {
   const { colours, isDark } = useTheme();
+  const s = createStyles(colours);
 
   return (
     <ConfigProvider>
       <RecipesProvider>
         <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1, backgroundColor: colours.bg }}>
+          <SafeAreaView style={s.safeArea}>
             <NavigationContainer>
               <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colours.bg} />
 
@@ -87,3 +88,7 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
+const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
+  safeArea:            { flex: 1, backgroundColor: colours.bg },
+});

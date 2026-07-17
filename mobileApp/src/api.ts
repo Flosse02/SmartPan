@@ -42,7 +42,7 @@ function parseFraction(input: string): number | null {
 
   for (const [k, v] of Object.entries(unicodeFractions)) {
     if (input.includes(k)) {
-      const whole = parseInt(input.replace(k, '').trim()) || 0;
+      const whole = parseInt(input.replace(k, '').trim(), 10) || 0;
       return whole + v;
     }
   }
@@ -53,7 +53,7 @@ function parseFraction(input: string): number | null {
 
     if (parts[1]?.includes('/')) {
       const [n, d] = parts[1].split('/');
-      return whole + parseInt(n) / parseInt(d);
+      return whole + parseInt(n, 10) / parseInt(d, 10);
     }
 
     return whole;
@@ -61,7 +61,7 @@ function parseFraction(input: string): number | null {
 
   if (input.includes('/')) {
     const [n, d] = input.split('/');
-    return parseInt(n) / parseInt(d);
+    return parseInt(n, 10) / parseInt(d, 10);
   }
 
   return parseFloat(input);
@@ -77,7 +77,7 @@ function parseIngredient(raw: string) {
   cleaned = decodeEntities(cleaned).replace(/\s+/g, ' ').trim();
 
   const match = cleaned.match(
-    /^([\d\s\/.½¼¾⅓⅔⅛]+)?\s*([A-Za-z-]+)?\s+(.*)$/
+    /^([\d\s/.½¼¾⅓⅔⅛]+)?\s*([A-Za-z-]+)?\s+(.*)$/
   );
 
   if (!match) {
@@ -146,8 +146,8 @@ function parseISODuration(iso?: string): number | undefined {
   const match = iso.match(/P(?:\d+D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);
   if (!match) return undefined;
 
-  const hours = parseInt(match[1] || '0');
-  const minutes = parseInt(match[2] || '0');
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
   const total = hours * 60 + minutes;
   return total > 0 ? total : undefined;
 }
@@ -158,7 +158,7 @@ function parseYield(y: any): number {
   if (typeof y === 'number') return y;
   if (typeof y === 'string') {
     const m = y.match(/\d+/);
-    return m ? parseInt(m[0]) : 4;
+    return m ? parseInt(m[0], 10) : 4;
   }
   return 4;
 }
@@ -313,7 +313,7 @@ export const api = {
       const merged = Array.from(map.values());
       await localStore.saveAll(merged, true); // true = full overwrite, see localStore.ts
       return merged;
-    } catch (e) {
+    } catch {
       console.log('Server unreachable, falling back to local cache');
       const all = await localStore.getAll();
       if (!q) return all;
@@ -346,7 +346,7 @@ export const api = {
       await localStore.remove(tempId);
       await localStore.add(real);
       return real;
-    } catch (e) {
+    } catch {
       console.log('Server sync failed (offline?)');
       return localRecipe;
     }
@@ -423,7 +423,7 @@ export const api = {
         await localStore.remove(localRecipe.id);
         await localStore.add(real);
         console.log('Pushed offline recipe to server:', real.title);
-      } catch (e) {
+      } catch {
         const attempts = ((localRecipe as any).syncAttempts ?? 0) + 1;
         const delayMs = Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempts - 1), RETRY_MAX_DELAY_MS);
         await localStore.update({
@@ -462,7 +462,7 @@ export const api = {
         const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(data) });
         await localStore.update({ ...real, editPending: false, editSyncAttempts: undefined, editNextRetryAt: undefined });
         console.log('Pushed pending edit to server:', real.title);
-      } catch (e) {
+      } catch {
         const attempts = ((localRecipe as any).editSyncAttempts ?? 0) + 1;
         const delayMs = Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempts - 1), RETRY_MAX_DELAY_MS);
         await localStore.update({
@@ -515,7 +515,7 @@ export const api = {
     for (const id of toDelete) {
       try {
         await req(`/api/recipes?id=${id}`, { method: 'DELETE' });
-      } catch (e) {
+      } catch {
         console.log('Failed to delete duplicate:', id);
       }
     }

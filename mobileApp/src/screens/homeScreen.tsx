@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import {
-  View, 
-  Text, 
-  ScrollView, 
+  View,
+  Text,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Image, 
-  TextInput, 
+  Image,
   ActivityIndicator,
   Modal,
 } from 'react-native';
@@ -115,7 +114,7 @@ export default function HomeScreen({ navigation }: any) {
   const { colours } = useTheme();
   const s = createStyles(colours);
 
-  const { recipes, remove, save, update, connected, loading, refresh } = useRecipes();
+  const { recipes, connected, loading, refresh } = useRecipes();
   const [query, setQuery] = useState('');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [noMatchMessage, setNoMatchMessage] = useState<string | null>(null);

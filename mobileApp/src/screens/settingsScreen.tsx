@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View, 
   ScrollView, 
@@ -21,7 +20,7 @@ const OPTIONS: { label: string; value: 'system' | 'light' | 'dark' }[] = [
   { label: 'Dark',   value: 'dark'   },
 ];
 
-export default function SettingsScreen({ navigation }: any) {
+export default function SettingsScreen() {
   const { colours, mode, setMode } = useTheme();
   const { config, updateConfig } = useConfig();
   const { dedupe, resetLocal } = useRecipes();
