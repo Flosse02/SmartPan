@@ -11,12 +11,13 @@ import {
 } from 'react-native';
 import { useRecipes } from '../context/RecipesContext';
 import { Recipe } from '../types';
-import { ICONS } from '../constants/icons';
+import { ICONS, IconType } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
 import { useTheme } from '../theme/Themecontext';
 import { ROUTES } from '../constants/routes';
 import { CATEGORIES } from '../constants/categories';
+import { AddShoppingListItemModal } from '../util/addShoppingListItemModal';
 
 
 const MEAL_OPTIONS = ['Any', ...CATEGORIES];
@@ -27,14 +28,15 @@ function fmtTime(min?: number) {
   return `${Math.floor(min / 60)}h${min % 60 ? ` ${min % 60}m` : ''}`;
 }
 
-function StatCard({ value, label, accent }: { value: string | number; label: string; accent?: string }) {
+function QuickAccessCard({ icon, label, onPress }: { icon: IconType; label: string; onPress: () => void }) {
   const { colours } = useTheme();
   const s = createStyles(colours);
+  const { as: Icon, name: iconName } = icon;
   return (
-    <View style={s.statCard}>
-      <Text style={[s.statVal, accent ? { color: accent } : {}]}>{value}</Text>
+    <TouchableOpacity style={s.statCard} onPress={onPress} activeOpacity={0.7}>
+      <Icon name={iconName} size={20} color={colours.accent} />
       <Text style={s.statLabel}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -118,8 +120,8 @@ export default function HomeScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [noMatchMessage, setNoMatchMessage] = useState<string | null>(null);
+  const [addItemModalVisible, setAddItemModalVisible] = useState(false);
 
-  const allTags   = Array.from(new Set(recipes.flatMap(r => r.tags)));
   const featured  = recipes[0] ?? null;
   const recent    = recipes.slice(1, 6);
   const favourites = recipes.filter(r => r.favourite);
@@ -132,7 +134,6 @@ export default function HomeScreen({ navigation }: any) {
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
   const {as: RefreshIcon, name: refreshIcon} = ICONS.REFRESH;
-  const {as: RandomIcon, name: randomIcon} = ICONS.RANDOM;
 
   const pickRandom = (category: string) => {
     const pool = category === 'Any'
@@ -149,6 +150,39 @@ export default function HomeScreen({ navigation }: any) {
     navigation.navigate(ROUTES.RECIPE_DETAIL, { id: random.id });
   };
 
+  function randomModal(){
+    return (
+      <Modal
+        visible={pickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPickerVisible(false)}
+      >
+        <TouchableOpacity
+          style={s.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setPickerVisible(false)}
+        >
+          <View style={s.modalCard}>
+            <Text style={s.modalTitle}>What are we feeling?</Text>
+            {noMatchMessage && <Text style={s.modalNoMatch}>{noMatchMessage}</Text>}
+            {MEAL_OPTIONS.map(opt => (
+              <TouchableOpacity
+                key={opt}
+                style={s.modalOption}
+                onPress={() => pickRandom(opt)}
+              >
+                <Text style={s.modalOptionText}>{opt}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={s.modalCancel} onPress={() => setPickerVisible(false)}>
+              <Text style={s.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    )
+  } 
 
 
   return (
@@ -171,10 +205,11 @@ export default function HomeScreen({ navigation }: any) {
           handleSearch={handleSearch}
         />
 
-        {/* Stats */}
+        {/* Quick access */}
         <View style={s.statsRow}>
-            <StatCard value={recipes.length} label="Recipes" />
-            <StatCard value={allTags.length} label="Tags" />
+            <QuickAccessCard icon={ICONS.RECIPE_ADD} label="Add Recipe" onPress={() => navigation.navigate(ROUTES.ADD_RECIPE)} />
+            <QuickAccessCard icon={ICONS.RANDOM} label="Random" onPress={() => { setNoMatchMessage(null); setPickerVisible(true); }} />
+            <QuickAccessCard icon={ICONS.CART_OUTLINE} label="Add Shopping" onPress={() => setAddItemModalVisible(true)} />
         </View>
 
         {loading && recipes.length === 0 && (
@@ -246,46 +281,14 @@ export default function HomeScreen({ navigation }: any) {
         )}
 
         <View style={{ height: 32 }} />
-        </ScrollView>
+      </ScrollView>
 
-        {/* FAB */}
-        <TouchableOpacity style={s.afab} onPress={() => navigation.navigate(ROUTES.ADD_RECIPE)}>
-            <Text style={s.afabText}><AddIcon name={addIcon} size={24} /></Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.rfab} onPress={() => { setNoMatchMessage(null); setPickerVisible(true); }}>
-          <Text style={s.rfabText}><RandomIcon name={randomIcon} size={24} /></Text>
-        </TouchableOpacity>
+      {randomModal()}
 
-         <Modal
-        visible={pickerVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPickerVisible(false)}
-      >
-        <TouchableOpacity
-          style={s.modalBackdrop}
-          activeOpacity={1}
-          onPress={() => setPickerVisible(false)}
-        >
-          <View style={s.modalCard}>
-            <Text style={s.modalTitle}>What are we feeling?</Text>
-            {noMatchMessage && <Text style={s.modalNoMatch}>{noMatchMessage}</Text>}
-            {MEAL_OPTIONS.map(opt => (
-              <TouchableOpacity
-                key={opt}
-                style={s.modalOption}
-                onPress={() => pickRandom(opt)}
-              >
-                <Text style={s.modalOptionText}>{opt}</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity style={s.modalCancel} onPress={() => setPickerVisible(false)}>
-              <Text style={s.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
+      <AddShoppingListItemModal
+        visible={addItemModalVisible}
+        onClose={() => setAddItemModalVisible(false)}
+      />
     </View>
   );
 }
@@ -297,9 +300,8 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   searchIcon:           { fontSize: 14 },
   searchInput:          { flex: 1, fontSize: 14, color: colours.text },
   statsRow:             { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 20 },
-  statCard:             { flex: 1, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, padding: 12, alignItems: 'center' },
-  statVal:              { fontSize: 20, fontWeight: '600', color: colours.accent },
-  statLabel:            { fontSize: 9, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 },
+  statCard:             { flex: 1, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, paddingVertical: 14, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  statLabel:            { fontSize: 9, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' },
   sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   sectionTitle:         { fontSize: 10, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, paddingHorizontal: 16, marginBottom: 10 },
   sectionMore:          { fontSize: 12, color: colours.accent },
@@ -327,10 +329,6 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   emptyText:            { fontSize: 13, color: colours.textGhost, textAlign: 'center', lineHeight: 20 },
   emptyBtn:             { marginTop: 20, backgroundColor: colours.accent, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
   emptyBtnText:         { color: '#fff', fontSize: 14, fontWeight: '600' },
-  afab:                 { position: 'absolute', bottom: 24, right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: colours.accent, alignItems: 'center', justifyContent: 'center' },
-  afabText:             { color: '#fff', fontSize: 28, lineHeight: 32 },
-  rfab:                 { position: 'absolute', bottom: 24, left: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: colours.accent, alignItems: 'center', justifyContent: 'center' },
-  rfabText:             { color: '#fff', fontSize: 28, lineHeight: 32 },
   modalBackdrop:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   modalCard:            { backgroundColor: colours.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 32, gap: 8 },
   modalTitle:           { fontSize: 16, fontWeight: '600', color: colours.text, marginBottom: 8, textAlign: 'center' },

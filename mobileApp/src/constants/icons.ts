@@ -45,6 +45,7 @@ export const ICONS = {
   CART_OUTLINE: {as: MaterialCommunityIcons , name: 'cart-outline'},
   TRASH: {as: MaterialCommunityIcons , name: 'trash-can-outline'},
   RECIPE_ADD: {as: MaterialCommunityIcons , name: 'book-plus-outline'},
+  WEB: {as: MaterialCommunityIcons , name: 'web'},
 } as const;
 
 export type IconConstType = typeof ICONS;
