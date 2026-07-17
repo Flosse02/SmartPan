@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { normaliseUnit, capitalise, cleanIngredientName } from './util/cleanIngridents';
+import { pushShoppingListWidgetUpdate } from './widgets/shoppingListWidgetSync';
 
 const KEY = 'shopping_list';
 
@@ -23,8 +24,17 @@ async function readAll(): Promise<ShoppingListItem[]> {
   return data ? JSON.parse(data) : [];
 }
 
-async function writeAll(items: ShoppingListItem[]) {
+interface WriteOptions {
+  // The widget's own click handler re-renders itself with the fresh state
+  // right after calling this — pushing another update on top of that would
+  // rebuild the widget's RemoteViews tree twice for one tap, which is what
+  // caused the visible flash. Only the widget task handler passes this.
+  skipWidgetSync?: boolean;
+}
+
+async function writeAll(items: ShoppingListItem[], options?: WriteOptions) {
   await AsyncStorage.setItem(KEY, JSON.stringify(items));
+  if (!options?.skipWidgetSync) pushShoppingListWidgetUpdate(items);
   return items;
 }
 
@@ -75,11 +85,11 @@ export const shoppingList = {
     return writeAll(list);
   },
 
-  toggleChecked: async (id: string): Promise<ShoppingListItem[]> => {
+  toggleChecked: async (id: string, options?: WriteOptions): Promise<ShoppingListItem[]> => {
     const list = await readAll();
     const item = list.find(i => i.id === id);
     if (item) item.checked = !item.checked;
-    return writeAll(list);
+    return writeAll(list, options);
   },
 
   removeItem: async (id: string): Promise<ShoppingListItem[]> => {

@@ -8,7 +8,7 @@ const UNIT_ALIASES: Record<string, string> = {
   gram: 'g', grams: 'g', g: 'g',
   kilogram: 'kg', kilograms: 'kg', kg: 'kg',
   milliliter: 'ml', milliliters: 'ml', millilitre: 'ml', millilitres: 'ml', ml: 'ml',
-  liter: 'l', liters: 'l', litre: 'l', litres: 'l', l: 'l',
+  liter: 'L', liters: 'L', litre: 'L', litres: 'L', l: 'L',
   pinch: 'pinch', pinches: 'pinch',
   clove: 'clove', cloves: 'clove',
   can: 'can', cans: 'can',

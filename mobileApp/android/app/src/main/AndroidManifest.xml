@@ -23,5 +23,23 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
+      <receiver
+          android:name=".ShoppingListWidgetProvider"
+          android:exported="false"
+          android:label="@string/shopping_list_widget_label">
+          <intent-filter>
+              <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+              <action android:name="com.smartpan.WIDGET_CLICK" />
+          </intent-filter>
+          <meta-data
+              android:name="android.appwidget.provider"
+              android:resource="@xml/shopping_list_widget_info" />
+      </receiver>
+
+      <service
+          android:name="com.reactnativeandroidwidget.RNWidgetCollectionService"
+          android:permission="android.permission.BIND_REMOTEVIEWS"
+          android:exported="false" />
     </application>
 </manifest>

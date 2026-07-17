@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, 
-  ScrollView, 
+  View,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Header } from '../util/header';
@@ -13,6 +12,7 @@ import { useTheme } from '../theme/Themecontext';
 import { InputBar } from '../util/inputBar';
 import { useConfig } from '../context/ConfigContext';
 import { useRecipes } from '../context/RecipesContext';
+import { alert } from '../util/alertStore';
 
 const OPTIONS: { label: string; value: 'system' | 'light' | 'dark' }[] = [
   { label: 'System', value: 'system' },
@@ -45,7 +45,7 @@ export default function SettingsScreen() {
   };
 
   const handleReset = () => {
-    Alert.alert(
+    alert(
       'Delete all recipes on this phone?',
       'This clears everything cached on this device and re-downloads your recipe list fresh from the server. Your recipes on the server are NOT affected.',
       [
@@ -57,9 +57,9 @@ export default function SettingsScreen() {
             setResetting(true);
             try {
               await resetLocal();
-              Alert.alert('Done', 'Local data cleared and resynced from the server.');
+              alert('Done', 'Local data cleared and resynced from the server.');
             } catch (e: any) {
-              Alert.alert('Something went wrong', e.message ?? 'Please try again.');
+              alert('Something went wrong', e.message ?? 'Please try again.');
             } finally {
               setResetting(false);
             }
@@ -70,7 +70,7 @@ export default function SettingsScreen() {
   };
  
   const handleDedupe = () => {
-    Alert.alert(
+    alert(
       'Clean up duplicates?',
       'This will remove duplicate recipes from the server, keeping the oldest copy of each. This cannot be undone.',
       [
@@ -82,14 +82,14 @@ export default function SettingsScreen() {
             setDeduping(true);
             try {
               const removed = await dedupe();
-              Alert.alert(
+              alert(
                 removed > 0 ? 'Done' : 'No duplicates found',
                 removed > 0
                   ? `Removed ${removed} duplicate recipe${removed === 1 ? '' : 's'}.`
                   : 'Your recipe list is already clean.'
               );
             } catch (e: any) {
-              Alert.alert('Something went wrong', e.message ?? 'Please try again.');
+              alert('Something went wrong', e.message ?? 'Please try again.');
             } finally {
               setDeduping(false);
             }
@@ -135,7 +135,7 @@ export default function SettingsScreen() {
             placeholder='192.xxx.x.xxx'
             value={ipAddress}
             onChangeText={setIpAddress}
-            keyboardType="numbers-and-punctuation"
+            keyboardType="number-pad"
             autoCapitalize="none"
             returnKeyType="done"
           />
@@ -145,7 +145,7 @@ export default function SettingsScreen() {
             placeholder='3000'
             value={port}
             onChangeText={setPort}
-            keyboardType="numbers-and-punctuation"
+            keyboardType="number-pad"
             autoCapitalize="none"
             returnKeyType="done"
           />

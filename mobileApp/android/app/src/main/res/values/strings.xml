@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SmartPan</string>
+    <string name="shopping_list_widget_label">Shopping List</string>
 </resources>

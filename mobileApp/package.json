@@ -23,6 +23,7 @@
     "express": "^5.2.1",
     "react": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-android-widget": "^0.21.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "^3.0.2",
     "react-native-image-picker": "^8.2.1",

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert, Image,
+  StyleSheet, ActivityIndicator, Image,
 } from 'react-native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { useRecipes } from '../context/RecipesContext';
@@ -10,6 +10,7 @@ import { ICONS } from '../constants/icons';
 import { CATEGORIES } from '../constants/categories';
 import { useTheme } from '../theme/Themecontext';
 import { RecipeBrowser } from '../util/recipeBrowser';
+import { alert } from '../util/alertStore';
 
 // Keeps picked photos small enough for quick uploads over local WiFi and
 // comfortably under AsyncStorage's per-item size limit while still sitting
@@ -79,7 +80,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
 
     if (result.didCancel) return;
     if (result.errorCode) {
-      Alert.alert('Could not get photo', result.errorMessage ?? result.errorCode);
+      alert('Could not get photo', result.errorMessage ?? result.errorCode);
       return;
     }
 
@@ -144,7 +145,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
       });
       setTab('manual');
     } catch (e: any) {
-      Alert.alert('Import failed', e.message);
+      alert('Import failed', e.message);
     } finally {
       setImporting(false);
     }
@@ -155,7 +156,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
   const handleSave = async () => {
     if (!form.title.trim()) return;
     if (currentTags.length === 0) {
-      Alert.alert('Add a tag', 'Pick at least one category below (or type your own) before saving — it\'s how recipes get filtered and organized later.');
+      alert('Add a tag', 'Pick at least one category below (or type your own) before saving — it\'s how recipes get filtered and organized later.');
       return;
     }
 
@@ -192,7 +193,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
 
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Save failed', e.message);
+      alert('Save failed', e.message);
     } finally {
       setSaving(false);
     }
