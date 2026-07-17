@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert,
+  StyleSheet, ActivityIndicator, Alert, Image,
 } from 'react-native';
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { useRecipes } from '../context/RecipesContext';
 import { api } from '../api';
 import { ICONS } from '../constants/icons';
 import { CATEGORIES } from '../constants/categories';
 import { useTheme } from '../theme/Themecontext';
+
+// Keeps picked photos small enough for quick uploads over local WiFi and
+// comfortably under AsyncStorage's per-item size limit while still sitting
+// as a data: URI locally (see resolveImage in api.ts).
+const IMAGE_PICKER_OPTIONS = {
+  mediaType: 'photo' as const,
+  quality: 0.7 as const,
+  maxWidth: 1600,
+  maxHeight: 1600,
+  includeBase64: true,
+};
 
 const EMPTY = {
   title: '', description: '', servings: '4', prepTime: '', cookTime: '',
@@ -57,6 +69,27 @@ export default function AddRecipeScreen({ navigation, route }: any) {
       const next = exists ? tags.filter(t => t.toLowerCase() !== tag.toLowerCase()) : [...tags, tag];
       return { ...f, tags: next.join(', ') };
     });
+  };
+
+  const pickImage = async (fromCamera: boolean) => {
+    const result = fromCamera
+      ? await launchCamera(IMAGE_PICKER_OPTIONS)
+      : await launchImageLibrary(IMAGE_PICKER_OPTIONS);
+
+    if (result.didCancel) return;
+    if (result.errorCode) {
+      Alert.alert('Could not get photo', result.errorMessage ?? result.errorCode);
+      return;
+    }
+
+    const asset = result.assets?.[0];
+    if (!asset?.base64) return;
+
+    // Stored as a data: URI for now — displays immediately with no network
+    // needed, and api.ts's resolveImage() uploads it and swaps in the real
+    // server URL on save/update (retried automatically if offline).
+    const mimeType = asset.type ?? 'image/jpeg';
+    setForm(f => ({ ...f, image: `data:${mimeType};base64,${asset.base64}` }));
   };
 
   useEffect(() => {
@@ -133,7 +166,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
         prepTime: Number(form.prepTime) || undefined,
         cookTime: Number(form.cookTime) || undefined,
         tags: currentTags,
-        image: form.image.trim() || undefined,
+        image: form.image.trim() || null,
         ingredients: form.ingredients
           .filter(i => i.name.trim())
           .map(i => ({
@@ -212,7 +245,23 @@ export default function AddRecipeScreen({ navigation, route }: any) {
           {currentTags.length === 0 && (
             <Text style={s.tagHint}>Pick at least one tag above, or type your own in the field.</Text>
           )}
-          <TextInput style={s.input} placeholder="Image URL (optional)" placeholderTextColor={colours.textGhost} value={form.image} onChangeText={v => setForm(f => ({ ...f, image: v }))} autoCapitalize="none" keyboardType="url" />
+          {form.image ? (
+            <View style={s.imagePreviewWrap}>
+              <Image source={{ uri: form.image }} style={s.imagePreview} />
+              <TouchableOpacity style={s.imageRemoveBtn} onPress={() => setForm(f => ({ ...f, image: '' }))}>
+                <Text style={s.imageRemoveBtnText}><CloseIcon name={closeIcon} size={16} color="#fff" /></Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          <TextInput style={s.input} placeholder="Paste an Image URL or..." placeholderTextColor={colours.textGhost} value={form.image.startsWith('data:') ? '' : form.image} onChangeText={v => setForm(f => ({ ...f, image: v }))} autoCapitalize="none" keyboardType="url" />
+          <View style={s.imagePickRow}>
+            <TouchableOpacity style={s.imagePickBtn} onPress={() => pickImage(false)}>
+              <Text style={s.imagePickBtnText}>Choose Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.imagePickBtn} onPress={() => pickImage(true)}>
+              <Text style={s.imagePickBtnText}>Take Photo</Text>
+            </TouchableOpacity>
+          </View>
 
           <Text style={s.sectionLabel}>Ingredients</Text>
           {form.ingredients.map((ing, i) => (
@@ -302,6 +351,13 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   stepNumText:     { fontSize: 11, color: colours.accent },
   removeBtn:       { padding: 8 },
   removeBtnText:   { color: colours.textGhost, fontSize: 13 },
+  imagePreviewWrap:{ borderRadius: 10, overflow: 'hidden', marginBottom: 4 },
+  imagePreview:    { width: '100%', height: 160, backgroundColor: colours.surface },
+  imageRemoveBtn:  { position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  imageRemoveBtnText: { color: '#fff' },
+  imagePickRow:    { flexDirection: 'row', gap: 8, marginBottom: 4 },
+  imagePickBtn:    { flex: 1, backgroundColor: colours.surface, borderWidth: 0.5, borderColor: colours.border, borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
+  imagePickBtnText:{ color: colours.accent, fontSize: 13, fontWeight: '600' },
   addRowBtn:       { borderWidth: 0.5, borderColor: colours.border, borderStyle: 'dashed', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 4 },
   addRowBtnText:   { color: colours.textGhost, fontSize: 12 },
 });

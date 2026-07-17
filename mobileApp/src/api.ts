@@ -279,6 +279,41 @@ async function fetchPageHtml(url: string): Promise<string> {
   }
 }
 
+/**
+ * Uploads a data: URI (from the image picker) to the server and returns the
+ * absolute URL of the stored image — recipe.image is always expected to be
+ * a fully-qualified URL (matching what the JSON-LD/Spoonacular import paths
+ * already produce), never a relative path.
+ */
+async function uploadImage(dataUri: string): Promise<string> {
+  const match = dataUri.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error('Invalid image data URI');
+  const [, mimeType, data] = match;
+  const res = await req('/api/recipes/images', {
+    method: 'POST',
+    body: JSON.stringify({ data, mimeType }),
+  });
+  return `${getApiBaseUrl()}${res.url}`;
+}
+
+/**
+ * If `image` is a data: URI — a picked-but-not-yet-uploaded photo (see
+ * addRecipeScreen.tsx) — tries to upload it and swaps in the real URL.
+ * Never throws: if the upload fails (offline), returns the data unchanged,
+ * since the data: URI still renders fine locally, and every retry path
+ * (saveRecipe, updateRecipe, pushUnsyncedRecipes, pushPendingEdits) calls
+ * this again on its next attempt.
+ */
+async function resolveImage(data: any): Promise<any> {
+  if (typeof data.image !== 'string' || !data.image.startsWith('data:')) return data;
+  try {
+    const image = await uploadImage(data.image);
+    return { ...data, image };
+  } catch {
+    return data;
+  }
+}
+
 export const api = {
   getRecipes: async (q?: string) => {
     try {
@@ -322,6 +357,8 @@ export const api = {
   },
 
   saveRecipe: async (data: any) => {
+    data = await resolveImage(data);
+
     // Must be prefixed with "temp-" — pushUnsyncedRecipes() and getRecipes()
     // both use that prefix as the structural signal for "genuinely
     // unsynced, created offline". A bare id here would cause this recipe
@@ -364,7 +401,8 @@ export const api = {
     // incoming payload so a retry doesn't send stale markers back to the
     // server as if they were real recipe fields.
     const { editPending, editSyncAttempts, editNextRetryAt, ...cleanData } = data;
-    const updated = { ...cleanData, updatedAt: new Date().toISOString() };
+    const resolved = await resolveImage(cleanData);
+    const updated = { ...resolved, updatedAt: new Date().toISOString() };
     await localStore.update(updated);
     try {
       const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(updated) });
@@ -416,9 +454,10 @@ export const api = {
     for (const localRecipe of unsynced) {
       try {
         const { id, createdAt, updatedAt, source, syncAttempts, nextRetryAt, ...data } = localRecipe as any;
+        const resolved = await resolveImage(data);
         const real = await req('/api/recipes', {
           method: 'POST',
-          body: JSON.stringify(data),
+          body: JSON.stringify(resolved),
         });
         await localStore.remove(localRecipe.id);
         await localStore.add(real);
@@ -459,7 +498,8 @@ export const api = {
     for (const localRecipe of pending) {
       try {
         const { editPending, editSyncAttempts, editNextRetryAt, ...data } = localRecipe as any;
-        const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(data) });
+        const resolved = await resolveImage(data);
+        const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(resolved) });
         await localStore.update({ ...real, editPending: false, editSyncAttempts: undefined, editNextRetryAt: undefined });
         console.log('Pushed pending edit to server:', real.title);
       } catch {

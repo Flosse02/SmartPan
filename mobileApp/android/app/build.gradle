@@ -139,6 +139,10 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // react-native-image-picker's launchImageLibrary uses the AndroidX Photo
+    // Picker, which needs this backport since minSdkVersion (24) is below 30.
+    implementation("androidx.activity:activity:1.9.+")
 }
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

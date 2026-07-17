@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { Image } from 'react-native';
 import { api } from '../api';
 import { localStore } from '../localStore';
 import { recipePrefs, RecipePrefs } from '../recipePrefs';
@@ -29,6 +30,19 @@ function withPrefs(recipes: Recipe[], prefs: Record<string, RecipePrefs>): Recip
   return recipes.map(r => (prefs[r.id] ? { ...r, ...prefs[r.id] } : r));
 }
 
+// Recipe data syncing only pulls down the image *URL* — the actual bytes
+// aren't fetched until something renders that <Image>. Without this, a
+// recipe synced but never scrolled to/opened before going offline shows a
+// blank image, even though its data is fully present locally. Fire-and-
+// forget: failures (offline, bad URL) are fine, this is just a warm-up.
+function prefetchImages(recipes: Recipe[]) {
+  for (const r of recipes) {
+    if (r.image && /^https?:\/\//.test(r.image)) {
+      Image.prefetch(r.image).catch(() => {});
+    }
+  }
+}
+
 export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +58,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       const [all, prefs] = await Promise.all([localStore.getAll(), recipePrefs.getAll()]);
       prefsRef.current = prefs;
       setRecipes(withPrefs(all, prefs));
+      prefetchImages(all);
     })();
   }, []);
 
@@ -53,6 +68,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await api.getRecipes();
       setRecipes(withPrefs(data, prefsRef.current));
+      prefetchImages(data);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -87,6 +103,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
             await api.pushPendingEdits();
             const data = await api.getRecipes();
             setRecipes(withPrefs(data, prefsRef.current));
+            prefetchImages(data);
           } catch {
             console.log('Reconnect sync failed, will retry next reconnect');
           }
