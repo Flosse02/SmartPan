@@ -39,11 +39,15 @@ export function Header({
   return (
     <View style={s(colours).header}>
       <View style={s(colours).headerLeft}>
-        <Text style={s(colours).headerTitle}>{title}</Text>
+        <View style={s(colours).devHeader}>
+          <Text style={s(colours).headerTitle}>{title}</Text>
+          {__DEV__ && <Text style={s(colours).devBadge}>DEV MODE</Text>}
+        </View>
         {subtitle ? <Text style={s(colours).headerSub}>{subtitle}</Text> : null}
       </View>
 
       <View style={s(colours).headerRight}>
+
         {connected !== undefined && (
           <View style={[s(colours).dot, connected ? s(colours).dotOn : s(colours).dotOff]} />
         )}
@@ -76,12 +80,14 @@ export function Header({
 const s = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   headerLeft:           { flexShrink: 1 },
+  devHeader:            { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerTitle:          { fontSize: typography.title.fontSize, fontWeight: typography.title.fontWeight, color: colours.text, letterSpacing: -0.5 },
   headerSub:            { fontSize: typography.subtitle.fontSize, color: colours.textGhost, marginTop: 2 },
   headerRight:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  devBadge:             { color: colours.error, fontSize: 10, fontWeight: '700', letterSpacing: 0.5},
   dot:                  { width: 7, height: 7, borderRadius: 4 },
   dotOn:                { backgroundColor: colours.accent },
   dotOff:               { backgroundColor: colours.textGhost },
-  actionBtn:              { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colours.surface, borderRadius: 8, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 10, paddingVertical: 7 },
-  actionBtnText:         { color: colours.accent, fontSize: typography.small.fontSize, fontWeight: typography.small.fontWeight },
+  actionBtn:            { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colours.surface, borderRadius: 8, borderWidth: 0.5, borderColor: colours.border, paddingHorizontal: 10, paddingVertical: 7 },
+  actionBtnText:        { color: colours.accent, fontSize: typography.small.fontSize, fontWeight: typography.small.fontWeight },
 });
