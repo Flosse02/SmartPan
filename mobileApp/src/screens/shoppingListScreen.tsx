@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { shoppingList, ShoppingListItem } from '../shoppingList';
 import { Header } from '../util/header';
@@ -24,6 +24,19 @@ export default function ShoppingListScreen() {
   }, []);
 
   useFocusEffect(load);
+
+  // useFocusEffect only fires on in-app navigation transitions — if this
+  // tab was already active when the app was backgrounded (e.g. tapping the
+  // widget to reopen the app while already on Shopping List), navigating
+  // "into" the same already-focused screen isn't a focus change, so it
+  // never re-fires. The widget can toggle items while the app is
+  // backgrounded, so also refresh whenever the app returns to the foreground.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') load();
+    });
+    return () => sub.remove();
+  }, [load]);
 
   const toggle = async (id: string) => {
     setItems(await shoppingList.toggleChecked(id));
