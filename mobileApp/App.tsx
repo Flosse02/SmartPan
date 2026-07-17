@@ -23,6 +23,33 @@ import { AlertHost } from './src/util/AlertHost';
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
 
+// smartpan://shopping-list opens straight to the Shopping List tab — used
+// by the home-screen widget's OPEN_URI click action (see ShoppingListWidget.tsx).
+// Typed `any`: the Stack/Tab navigators here aren't created with a typed
+// param list (createStackNavigator() not createStackNavigator<...>()), so
+// LinkingOptions infers every screen as `unknown` and can't validate this
+// nested shape against it — a pre-existing gap in this app's navigation
+// typing, not something specific to the linking config itself.
+const linking: any = {
+  prefixes: ['smartpan://'],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          [ROUTES.HOME]: 'home',
+          [ROUTES.RECIPES]: 'recipes',
+          [ROUTES.FAVOURITES]: 'favourites',
+          [ROUTES.SHOPPING_LIST]: 'shopping-list',
+          [ROUTES.SETTINGS]: 'settings',
+        },
+      },
+      RecipeDetail: 'recipe-detail',
+      CookingMode: 'cooking-mode',
+      AddRecipe: 'add-recipe',
+    },
+  },
+};
+
 function MainTabs() {
   const { colours } = useTheme();
   return (
@@ -60,7 +87,7 @@ function AppContent() {
       <RecipesProvider>
         <SafeAreaProvider>
           <SafeAreaView style={s.safeArea}>
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colours.bg} />
 
               <Stack.Navigator

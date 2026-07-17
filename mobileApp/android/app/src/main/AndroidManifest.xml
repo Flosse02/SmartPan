@@ -22,6 +22,14 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+        <!-- smartpan:// deep links — used by the shopping list widget's
+             OPEN_URI click action (React Navigation linking, see App.tsx) -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="smartpan" />
+        </intent-filter>
       </activity>
 
       <receiver

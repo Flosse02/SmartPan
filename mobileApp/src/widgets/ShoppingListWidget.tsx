@@ -32,7 +32,8 @@ export function ShoppingListWidget({ items, colours: rawColours }: ShoppingListW
 
   return (
     <FlexWidget
-      clickAction="OPEN_APP"
+      clickAction="OPEN_URI"
+      clickActionData={{ uri: 'smartpan://shopping-list' }}
       style={{
         height: 'match_parent',
         width: 'match_parent',
