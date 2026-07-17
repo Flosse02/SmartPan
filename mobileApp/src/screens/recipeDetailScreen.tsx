@@ -8,50 +8,7 @@ import { useRecipes } from '../context/RecipesContext';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
 import { ROUTES } from '../constants/routes';
-
-function formatFraction(value: number) {
-  const fractions: Record<number, string> = {
-    0.125: '1/8',
-    0.25: '1/4',
-    0.333: '1/3',
-    0.5: '1/2',
-    0.667: '2/3',
-    0.75: '3/4',
-  };
-
-  const whole = Math.floor(value);
-  const decimal = Number((value - whole).toFixed(3));
-
-  let fraction = '';
-
-  for (const [k, v] of Object.entries(fractions)) {
-    if (Math.abs(decimal - Number(k)) < 0.02) {
-      fraction = v;
-      break;
-    }
-  }
-
-  if (whole && fraction) return `${whole} ${fraction}`;
-  if (fraction) return fraction;
-  return value.toString();
-}
-
-function scaleAmount(
-  amount: number | null,
-  base: number,
-  current: number
-) {
-  if (amount == null) return '';
-
-  const scaled = (amount * current) / base;
-
-  // integers
-  if (Number.isInteger(scaled)) {
-    return String(scaled);
-  }
-
-  return formatFraction(Number(scaled.toFixed(3)));
-}
+import { scaleAmount } from '../util/cleanIngridents';
 
 function fmtTime(min?: number) {
   if (!min) return null;

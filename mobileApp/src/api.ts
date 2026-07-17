@@ -2,6 +2,7 @@ import { Recipe } from './types';
 import { localStore } from './localStore';
 import ENV from './constants/ENV';
 import { getApiBaseUrl } from './config/apiConfig';
+import { normaliseUnit } from './util/cleanIngridents';
 
 const RETRY_BASE_DELAY_MS = 5_000;
 const RETRY_MAX_DELAY_MS = 5 * 60_000;
@@ -66,28 +67,6 @@ function parseFraction(input: string): number | null {
   return parseFloat(input);
 }
 
-/** Maps common unit spellings/plurals to a consistent abbreviated form */
-const UNIT_ALIASES: Record<string, string> = {
-  teaspoon: 'tsp', teaspoons: 'tsp', tsp: 'tsp', tsps: 'tsp',
-  tablespoon: 'tbsp', tablespoons: 'tbsp', tbsp: 'tbsp', tbsps: 'tbsp', tbs: 'tbsp',
-  cup: 'cup', cups: 'cup',
-  ounce: 'oz', ounces: 'oz', oz: 'oz',
-  pound: 'lb', pounds: 'lb', lb: 'lb', lbs: 'lb',
-  gram: 'g', grams: 'g', g: 'g',
-  kilogram: 'kg', kilograms: 'kg', kg: 'kg',
-  milliliter: 'ml', milliliters: 'ml', millilitre: 'ml', millilitres: 'ml', ml: 'ml',
-  liter: 'l', liters: 'l', litre: 'l', litres: 'l', l: 'l',
-  pinch: 'pinch', pinches: 'pinch',
-  clove: 'clove', cloves: 'clove',
-  can: 'can', cans: 'can',
-  slice: 'slice', slices: 'slice',
-};
-
-function normalizeUnit(raw: string): string {
-  if (!raw) return raw;
-  const key = raw.toLowerCase().trim();
-  return UNIT_ALIASES[key] ?? raw;
-}
 
 /** Cleans and parses ingredient strings safely (works for both JSON-LD and Spoonacular text) */
 function parseIngredient(raw: string) {
@@ -107,7 +86,7 @@ function parseIngredient(raw: string) {
 
   return {
     amount: parseFraction(match[1]?.trim() || ''),
-    unit: normalizeUnit(match[2] || ''),
+    unit: normaliseUnit(match[2] || ''),
     name: match[3]?.trim() || cleaned,
   };
 }

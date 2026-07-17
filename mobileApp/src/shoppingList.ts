@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { normaliseUnit, capitalise } from './util/cleanIngridents';
 
 const KEY = 'shopping_list';
 
@@ -27,7 +28,12 @@ async function writeAll(items: ShoppingListItem[]) {
   return items;
 }
 
-const matchKey = (name: string, unit: string | null) => `${name.trim().toLowerCase()}|${(unit ?? '').trim().toLowerCase()}`;
+// Names/units come from free-typed entry or three different importer paths
+// (JSON-LD, Spoonacular, manual), so "cup" vs "Cups" vs " cup " are all the
+// same ingredient in practice — normalize both before comparing, or every
+// spelling variant becomes its own duplicate line.
+const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
+const matchKey = (name: string, unit: string | null) => `${normalizeName(name)}|${unit ? normaliseUnit(unit).toLowerCase() : ''}`;
 
 /** Local-only running shopping list, built by appending recipe ingredients one recipe at a time. */
 export const shoppingList = {
@@ -47,7 +53,7 @@ export const shoppingList = {
     for (const ing of ingredients) {
       const name = ing.name.trim();
       if (!name) continue;
-      const unit = ing.unit?.trim() || null;
+      const unit = ing.unit?.trim() ? normaliseUnit(ing.unit.trim()) : null;
       const key = matchKey(name, unit);
 
       const existing = list.find(i => !i.checked && matchKey(i.name, i.unit) === key);
@@ -57,7 +63,7 @@ export const shoppingList = {
       } else {
         list.push({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          name,
+          name: capitalise(name),
           amount: ing.amount,
           unit,
           checked: false,

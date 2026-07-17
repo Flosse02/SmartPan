@@ -5,9 +5,10 @@ import { shoppingList, ShoppingListItem } from '../shoppingList';
 import { Header } from '../util/header';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
+import { formatFraction } from '../util/cleanIngridents';
 
 function fmtAmount(item: ShoppingListItem) {
-  return [item.amount != null ? String(Math.round(item.amount * 100) / 100) : null, item.unit]
+  return [item.amount != null ? formatFraction(Number(item.amount.toFixed(3))) : null, item.unit]
     .filter(Boolean)
     .join(' ');
 }
