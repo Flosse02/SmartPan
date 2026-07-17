@@ -10,10 +10,12 @@ Connects to my [Smarthome](https://github.com/Flosse02/SmartHomeV4) app that I a
 
 ## Features
 
-- Save and manage recipes
+- Save and manage recipes — manually, imported from a URL, or found via a built-in in-app browser (search the web without leaving the app, then tap "Add to Recipes" on whatever page you land on)
+- Attach your own photo to a recipe — choose from your gallery or take one with the camera, not just a pasted image URL; uploads to the server in the background and still works offline (shows immediately, syncs once reconnected)
 - Search recipes by name, ingredient, or tag, plus quick category filter chips (Breakfast, Quick, Vegetarian, etc.)
 - Favourite recipes — starred from a card or the recipe detail screen, with a dedicated Favourites tab and a Favourites row on Home
-- Shopping list — add a recipe's ingredients (scaled to your chosen servings) to a running, checkable shopping list; matching ingredients from different recipes are merged instead of duplicated
+- Shopping list — pick which of a recipe's ingredients to add (scaled to your chosen servings) via a checklist, from either the recipe detail screen or a quick cart button on any recipe card; matching ingredients from different recipes are merged instead of duplicated
+- Android home-screen widget for the shopping list — glance at and check off items without opening the app, resizable, updates live as the list changes in-app
 - Real-time sync
 - Offline caching, including offline-created *and* offline-edited recipes, which sync automatically once reconnected
 - Custom theme support
@@ -112,6 +114,7 @@ SmartPan uses WebSockets to:
 - Recipes are cached.
 - App loads cached data instantly on startup
 - New recipes saved offline, and edits made offline, both sync with the server automatically once the connection is restored — a "Pending sync" badge shows on any recipe still waiting to sync
+- A photo picked/taken while offline displays immediately and uploads automatically once reconnected, same as the rest of the offline-sync system
 
 ---
 
@@ -122,8 +125,21 @@ SmartPan uses WebSockets to:
 - Favourites — your starred recipes
 - Shopping List — checkable list built from recipes' ingredients
 - Recipe Detail View
-- Add / Edit Recipe — requires at least one tag/category, either picked from the presets or typed manually
+- Add / Edit Recipe — Manual entry, Import URL, or Browser (an in-app web browser for finding recipes); requires at least one tag/category, either picked from the presets or typed manually; supports picking/taking a photo instead of only pasting an image URL
 - Settings
+
+---
+
+## Android Home-Screen Widget
+
+A resizable widget shows your shopping list right on the home screen:
+- Displays unchecked items only — checked-off items live in the app, not the glance view
+- Tap an item to check it off directly from the widget
+- Tap anywhere else to open the app
+- Updates live whenever the list changes in-app (adding ingredients, checking items, clearing) — no need to remove and re-add the widget
+- Follows your in-app theme (light/dark/system)
+
+Built with [`react-native-android-widget`](https://github.com/sAleksovski/react-native-android-widget), which renders React components as native Android `RemoteViews`.
 
 ---
 
@@ -134,6 +150,7 @@ SmartPan uses WebSockets to:
 - Image scanning for recipes
 - Auto LAN discovery
 - Push notifications for sync updates
+- The shopping list widget redraws itself entirely on every change (a limitation of the underlying widget library, which has no partial/incremental update path), causing a brief visible flash when checking off an item — not fixable without patching third-party native code
 
 ---
 
