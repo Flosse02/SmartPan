@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Image,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Alert,
 } from 'react-native';
 import { Recipe } from '../types';
-import { api } from '../api';
+import { shoppingList } from '../shoppingList';
 import { useRecipes } from '../context/RecipesContext';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
+import { ROUTES } from '../constants/routes';
 
 function formatFraction(value: number) {
   const fractions: Record<number, string> = {
@@ -62,7 +63,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const { colours } = useTheme();
   const s = createStyles(colours);
 
-  const { recipes, remove, save, update } = useRecipes();
+  const { recipes, remove, toggleFavourite } = useRecipes();
   const params = route.params as { id?: string; recipe?: Recipe };
   const recipe: Recipe | undefined = recipes.find(r => r.id === params.id) || params.recipe;
   const [servings, setServings] = useState<number>(recipe?.servings ?? 1);
@@ -80,6 +81,9 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
   const {as: MinusIcon, name: minusIcon} = ICONS.MINUS;
   const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
+  const {as: HeartIcon, name: heartIcon} = ICONS.HEART;
+  const {as: HeartOutlineIcon, name: heartOutlineIcon} = ICONS.HEART_OUTLINE;
+  const {as: CartIcon, name: cartIcon} = ICONS.CART_OUTLINE;
   const pendingSync = recipe.id.startsWith('temp-');
 
   const handleDelete = async () => {
@@ -91,7 +95,19 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       console.error('Failed to delete recipe:', error);
     }
   };
-  
+
+  const handleAddToShoppingList = async () => {
+    const items = (recipe.ingredients ?? [])
+      .filter(i => i.name.trim())
+      .map(i => ({
+        name: i.name,
+        unit: i.unit,
+        amount: i.amount != null ? (i.amount * servings) / recipe.servings : null,
+      }));
+    await shoppingList.addIngredients(items, recipe.title);
+    Alert.alert('Added to shopping list', `${items.length} ingredient${items.length === 1 ? '' : 's'} added.`);
+  };
+
   return (
     <View style={s.container}>
       {/* Header image */}
@@ -105,17 +121,25 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
         <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} /></Text>
       </TouchableOpacity>
 
+      {/* Favourite toggle */}
+      <TouchableOpacity style={s.favBtn} onPress={() => toggleFavourite(recipe.id)}>
+        {recipe.favourite
+          ? <HeartIcon name={heartIcon} size={20} color="#ff5c7a" />
+          : <HeartOutlineIcon name={heartOutlineIcon} size={20} color={colours.text} />
+        }
+      </TouchableOpacity>
+
       {/* Delete button */}
       <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete()}>
         <Text style={s.deleteBtnText}>Delete</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={s.editBtn} onPress={() => navigation.navigate('AddRecipe', { recipe })}>
+      <TouchableOpacity style={s.editBtn} onPress={() => navigation.navigate(ROUTES.ADD_RECIPE, { recipe })}>
         <Text style={s.editBtnText}>Edit</Text>
       </TouchableOpacity>
 
       {/* Cook button */}
-      <TouchableOpacity style={s.cookBtn} onPress={() => navigation.navigate('CookingMode', { recipe, servings })}>
+      <TouchableOpacity style={s.cookBtn} onPress={() => navigation.navigate(ROUTES.COOKING_MODE, { recipe, servings })}>
         <Text style={s.cookBtnText}>Cook</Text>
       </TouchableOpacity>
 
@@ -153,6 +177,11 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           </View>
         </View>
 
+        <TouchableOpacity style={s.addToListBtn} onPress={handleAddToShoppingList}>
+          <CartIcon name={cartIcon} size={14} color={colours.accent} />
+          <Text style={s.addToListBtnText}>Add to shopping list</Text>
+        </TouchableOpacity>
+
         {(recipe.ingredients ?? []).map((ing, i) => (
           <View key={i} style={s.ingredient}>
             <Text style={s.ingredientAmount}>
@@ -184,6 +213,9 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   heroEmoji:        { fontSize: 60 },
   back:             { position: 'absolute', top: 20, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
   backText:         { color: colours.text, fontSize: 18 },
+  favBtn:           { position: 'absolute', top: 20, left: 60, width: 36, height: 36, borderRadius: 18, backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
+  addToListBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colours.accentBg, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 14 },
+  addToListBtnText: { color: colours.accent, fontSize: 12, fontWeight: '600' },
   cookBtn:          { position: 'absolute', bottom: 4, backgroundColor: colours.accent, borderRadius: 8, paddingHorizontal: "30%", paddingVertical: 8, alignSelf: 'center', zIndex: 999, elevation: 10 },
   cookBtnText:      { color: colours.text, fontSize: 13, fontWeight: '600' },
   deleteBtn:        { position: 'absolute', top: 20, right: 16, backgroundColor: colours.error, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },

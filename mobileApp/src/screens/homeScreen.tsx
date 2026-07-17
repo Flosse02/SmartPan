@@ -17,9 +17,10 @@ import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
 import { useTheme } from '../theme/Themecontext';
 import { ROUTES } from '../constants/routes';
+import { CATEGORIES } from '../constants/categories';
 
 
-const MEAL_OPTIONS = ['Any', 'Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack'];
+const MEAL_OPTIONS = ['Any', ...CATEGORIES];
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -122,6 +123,7 @@ export default function HomeScreen({ navigation }: any) {
   const allTags   = Array.from(new Set(recipes.flatMap(r => r.tags)));
   const featured  = recipes[0] ?? null;
   const recent    = recipes.slice(1, 6);
+  const favourites = recipes.filter(r => r.favourite);
 
   const handleSearch = () => {
     if (query.trim()) navigation.navigate(ROUTES.RECIPES, { query });
@@ -145,7 +147,7 @@ export default function HomeScreen({ navigation }: any) {
 
     const random = pool[Math.floor(Math.random() * pool.length)];
     setPickerVisible(false);
-    navigation.navigate('RecipeDetail', { id: random.id });
+    navigation.navigate(ROUTES.RECIPE_DETAIL, { id: random.id });
   };
 
 
@@ -186,8 +188,29 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={s.sectionTitle}>Featured</Text>
             <FeaturedCard
                 recipe={featured}
-                onPress={() => navigation.navigate('RecipeDetail', { id: featured.id })}
+                onPress={() => navigation.navigate(ROUTES.RECIPE_DETAIL, { id: featured.id })}
             />
+            </>
+        )}
+
+        {/* Favourites */}
+        {favourites.length > 0 && (
+            <>
+            <View style={s.sectionHeader}>
+                <Text style={s.sectionTitle}>Favourites</Text>
+                <TouchableOpacity onPress={() => navigation.navigate(ROUTES.FAVOURITES)}>
+                <Text style={s.sectionMore}>See all <ArrowRightIcon name={arrowRightIcon} size={12} /></Text>
+                </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.recentRow}>
+                {favourites.map(r => (
+                <MiniCard
+                    key={r.id}
+                    recipe={r}
+                    onPress={() => navigation.navigate(ROUTES.RECIPE_DETAIL, { id: r.id })}
+                />
+                ))}
+            </ScrollView>
             </>
         )}
 
@@ -196,7 +219,7 @@ export default function HomeScreen({ navigation }: any) {
             <>
             <View style={s.sectionHeader}>
                 <Text style={s.sectionTitle}>Recent</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Recipes')}>
+                <TouchableOpacity onPress={() => navigation.navigate(ROUTES.RECIPES)}>
                 <Text style={s.sectionMore}>See all <ArrowRightIcon name={arrowRightIcon} size={12} /></Text>
                 </TouchableOpacity>
             </View>
@@ -205,7 +228,7 @@ export default function HomeScreen({ navigation }: any) {
                 <MiniCard
                     key={r.id}
                     recipe={r}
-                    onPress={() => navigation.navigate('RecipeDetail', { id: r.id })}
+                    onPress={() => navigation.navigate(ROUTES.RECIPE_DETAIL, { id: r.id })}
                 />
                 ))}
             </ScrollView>
@@ -217,7 +240,7 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={s.emptyEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text>
             <Text style={s.emptyTitle}>No recipes yet</Text>
             <Text style={s.emptyText}>Add your first recipe or import from a URL</Text>
-            <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('AddRecipe')}>
+            <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate(ROUTES.ADD_RECIPE)}>
                 <Text style={s.emptyBtnText}><AddIcon name={addIcon} size={16} /> Add recipe</Text>
             </TouchableOpacity>
             </View>
@@ -227,7 +250,7 @@ export default function HomeScreen({ navigation }: any) {
         </ScrollView>
 
         {/* FAB */}
-        <TouchableOpacity style={s.afab} onPress={() => navigation.navigate('AddRecipe')}>
+        <TouchableOpacity style={s.afab} onPress={() => navigation.navigate(ROUTES.ADD_RECIPE)}>
             <Text style={s.afabText}><AddIcon name={addIcon} size={24} /></Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.rfab} onPress={() => { setNoMatchMessage(null); setPickerVisible(true); }}>
@@ -278,7 +301,7 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   statCard:             { flex: 1, backgroundColor: colours.surface, borderRadius: 10, borderWidth: 0.5, borderColor: colours.border, padding: 12, alignItems: 'center' },
   statVal:              { fontSize: 20, fontWeight: '600', color: colours.accent },
   statLabel:            { fontSize: 9, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 },
-  sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 10 },
+  sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   sectionTitle:         { fontSize: 10, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, paddingHorizontal: 16, marginBottom: 10 },
   sectionMore:          { fontSize: 12, color: colours.accent },
   featured:             { marginHorizontal: 16, marginBottom: 20, backgroundColor: colours.surface, borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: colours.border },

@@ -8,6 +8,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import HomeScreen from './src/screens/homeScreen';
 import RecipeListScreen from './src/screens/recipeListScreen';
+import FavouritesScreen from './src/screens/favouritesScreen';
+import ShoppingListScreen from './src/screens/shoppingListScreen';
 import RecipeDetailScreen from './src/screens/recipeDetailScreen';
 import CookingModeScreen from './src/screens/cookingModeScreen';
 import AddRecipeScreen from './src/screens/addRecipeScreen';
@@ -41,6 +43,8 @@ function MainTabs() {
     >
       <Tab.Screen name={ROUTES.HOME} component={HomeScreen} options={{ title: 'Home' }} />
       <Tab.Screen name={ROUTES.RECIPES} component={RecipeListScreen} options={{ title: 'Recipes' }} />
+      <Tab.Screen name={ROUTES.FAVOURITES} component={FavouritesScreen} options={{ title: 'Favourites' }} />
+      <Tab.Screen name={ROUTES.SHOPPING_LIST} component={ShoppingListScreen} options={{ title: 'Shopping' }} />
       <Tab.Screen name={ROUTES.SETTINGS} component={SettingsScreen} options={{ title: 'Settings' }} />
     </Tab.Navigator>
   );

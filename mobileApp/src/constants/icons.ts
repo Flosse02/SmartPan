@@ -39,6 +39,11 @@ export const ICONS = {
   HEAD: {as: MaterialIcons , name: 'person'},
   TIMER: {as: MaterialIcons , name: 'timer'},
   SYNC_PENDING: {as: MaterialCommunityIcons , name: 'cloud-sync-outline'},
+  HEART: {as: MaterialCommunityIcons , name: 'heart'},
+  HEART_OUTLINE: {as: MaterialCommunityIcons , name: 'heart-outline'},
+  CART: {as: MaterialCommunityIcons , name: 'cart'},
+  CART_OUTLINE: {as: MaterialCommunityIcons , name: 'cart-outline'},
+  TRASH: {as: MaterialCommunityIcons , name: 'trash-can-outline'},
 } as const;
 
 export type IconConstType = typeof ICONS;

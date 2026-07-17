@@ -2,6 +2,7 @@ export const darkColours = {
   bg:          '#0f0f13',
   surface:     '#1a1a1f',
   border:      '#2a2a2f',
+  borderLight: '#fff',
 
   accent:      '#6366f1',
   accentBg:    'rgba(99,102,241,0.15)',
@@ -21,6 +22,7 @@ export const lightColours = {
   bg:          '#f7f7fa',
   surface:     '#ffffff',
   border:      '#e2e2e8',
+  borderLight: '#fff',
 
   accent:      '#6366f1',
   accentBg:    'rgba(99,102,241,0.10)',

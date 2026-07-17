@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '../api';
 import { localStore } from '../localStore';
+import { recipePrefs, RecipePrefs } from '../recipePrefs';
 import { Recipe } from '../types';
 import { useConfig } from '../context/ConfigContext';
 
@@ -16,9 +17,17 @@ type RecipesContextType = {
   remove: (id: string) => Promise<void>;
   dedupe: () => Promise<number>;
   resetLocal: () => Promise<void>;
+  toggleFavourite: (id: string) => Promise<void>;
 };
 
 const RecipesContext = createContext<RecipesContextType | null>(null);
+
+// Merges device-local favourite prefs onto server/cache recipes — kept as a
+// plain function (not context state) so both the initial load and every
+// subsequent setRecipes() call apply prefs the same way.
+function withPrefs(recipes: Recipe[], prefs: Record<string, RecipePrefs>): Recipe[] {
+  return recipes.map(r => (prefs[r.id] ? { ...r, ...prefs[r.id] } : r));
+}
 
 export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -28,9 +37,14 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const { config } = useConfig();
 
   const wsRef = useRef<WebSocket | null>(null);
+  const prefsRef = useRef<Record<string, RecipePrefs>>({});
 
   useEffect(() => {
-    localStore.getAll().then(setRecipes);
+    (async () => {
+      const [all, prefs] = await Promise.all([localStore.getAll(), recipePrefs.getAll()]);
+      prefsRef.current = prefs;
+      setRecipes(withPrefs(all, prefs));
+    })();
   }, []);
 
   const refresh = useCallback(async () => {
@@ -38,7 +52,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       const data = await api.getRecipes();
-      setRecipes(data);
+      setRecipes(withPrefs(data, prefsRef.current));
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -71,7 +85,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           try {
             await api.pushUnsyncedRecipes();
             const data = await api.getRecipes();
-            setRecipes(data);
+            setRecipes(withPrefs(data, prefsRef.current));
           } catch (e) {
             console.log('Reconnect sync failed, will retry next reconnect');
           }
@@ -98,12 +112,15 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           // against the echo of our own optimistic add showing up twice.
           if (msg.type === 'recipe_added') {
             setRecipes(prev =>
-              prev.some(r => r.id === msg.recipe.id) ? prev : [msg.recipe, ...prev]
+              prev.some(r => r.id === msg.recipe.id)
+                ? prev
+                : [withPrefs([msg.recipe], prefsRef.current)[0], ...prev]
             );
           }
 
           if (msg.type === 'recipe_updated') {
-            setRecipes(prev => prev.map(r => (r.id === msg.recipe.id ? msg.recipe : r)));
+            const updated = withPrefs([msg.recipe], prefsRef.current)[0];
+            setRecipes(prev => prev.map(r => (r.id === updated.id ? updated : r)));
           }
 
           if (msg.type === 'recipe_deleted') {
@@ -140,7 +157,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const real = await api.saveRecipe(data);
-        setRecipes(prev => prev.map(r => (r.id === tempRecipe.id ? real : r)));
+        // Carry over any favourite set on the temp record before the
+        // server-issued id existed, so favouriting while still offline
+        // isn't lost once the real id lands.
+        const prefs = await recipePrefs.rekey(tempRecipe.id, real.id);
+        prefsRef.current = prefs;
+        setRecipes(prev => prev.map(r => (r.id === tempRecipe.id ? withPrefs([real], prefs)[0] : r)));
       } catch (e) {
         console.log('Pi offline - saved locally only');
       }
@@ -149,7 +171,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   const update = useCallback(async (data: Recipe) => {
     const recipe = await api.updateRecipe(data);
-    setRecipes(prev => prev.map(r => (r.id === recipe.id ? recipe : r)));
+    setRecipes(prev => prev.map(r => (r.id === recipe.id ? withPrefs([recipe], prefsRef.current)[0] : r)));
   }, []);
 
   const remove = useCallback(async (id: string) => {
@@ -165,7 +187,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     try {
       const removedCount = await api.dedupeRecipes();
       const fresh = await localStore.getAll();
-      setRecipes(fresh);
+      setRecipes(withPrefs(fresh, prefsRef.current));
       return removedCount;
     } catch (e: any) {
       setError(e.message);
@@ -181,12 +203,19 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     try {
       await localStore.clearAll();
       const fresh = await api.getRecipes();
-      setRecipes(fresh);
+      setRecipes(withPrefs(fresh, prefsRef.current));
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const toggleFavourite = useCallback(async (id: string) => {
+    const current = prefsRef.current[id]?.favourite ?? false;
+    const prefs = await recipePrefs.set(id, { favourite: !current });
+    prefsRef.current = prefs;
+    setRecipes(prev => prev.map(r => (r.id === id ? { ...r, favourite: !current } : r)));
   }, []);
 
   return (
@@ -202,6 +231,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         remove,
         dedupe,
         resetLocal,
+        toggleFavourite,
       }}
     >
       {children}

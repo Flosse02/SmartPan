@@ -27,4 +27,8 @@ export interface Recipe {
   source:       'local' | 'server';
   createdAt:    string;
   updatedAt:    string;
+  // Device-local preference, merged in by RecipesContext from recipePrefs
+  // storage — never sent to the server, since the Pi server/dashboard has
+  // no concept of per-device favourite state.
+  favourite?:   boolean;
 }

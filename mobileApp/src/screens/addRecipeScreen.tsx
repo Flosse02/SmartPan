@@ -6,6 +6,7 @@ import {
 import { useRecipes } from '../context/RecipesContext';
 import { api } from '../api';
 import { ICONS } from '../constants/icons';
+import { CATEGORIES } from '../constants/categories';
 import { useTheme } from '../theme/Themecontext';
 
 const EMPTY = {
@@ -44,6 +45,18 @@ export default function AddRecipeScreen({ navigation, route }: any) {
 
   const setNote = (i: number, val: string) => {
     setForm(f => { const a = [...f.notes]; a[i] = { text: val }; return { ...f, notes: a }; });
+  };
+
+  const currentTags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
+  const canSave = !!form.title.trim() && currentTags.length > 0;
+
+  const toggleTag = (tag: string) => {
+    setForm(f => {
+      const tags = f.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const exists = tags.some(t => t.toLowerCase() === tag.toLowerCase());
+      const next = exists ? tags.filter(t => t.toLowerCase() !== tag.toLowerCase()) : [...tags, tag];
+      return { ...f, tags: next.join(', ') };
+    });
   };
 
   useEffect(() => {
@@ -105,6 +118,10 @@ export default function AddRecipeScreen({ navigation, route }: any) {
 
   const handleSave = async () => {
     if (!form.title.trim()) return;
+    if (currentTags.length === 0) {
+      Alert.alert('Add a tag', 'Pick at least one category below (or type your own) before saving — it\'s how recipes get filtered and organized later.');
+      return;
+    }
 
     setSaving(true);
 
@@ -115,10 +132,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
         servings: Number(form.servings) || 4,
         prepTime: Number(form.prepTime) || undefined,
         cookTime: Number(form.cookTime) || undefined,
-        tags: form.tags
-          .split(',')
-          .map(t => t.trim())
-          .filter(Boolean),
+        tags: currentTags,
         image: form.image.trim() || undefined,
         ingredients: form.ingredients
           .filter(i => i.name.trim())
@@ -162,7 +176,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
             <Text style={[s.tabText, tab === 'url' && s.tabTextActive]}>Import URL</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[s.saveBtn, !form.title.trim() && s.saveBtnDisabled]} onPress={handleSave} disabled={!form.title.trim() || saving}>
+        <TouchableOpacity style={[s.saveBtn, !canSave && s.saveBtnDisabled]} onPress={handleSave} disabled={!canSave || saving}>
           {saving ? <ActivityIndicator color={colours.text} size="small" /> : <Text style={s.saveBtnText}>Save</Text>}
         </TouchableOpacity>
       </View>
@@ -185,6 +199,19 @@ export default function AddRecipeScreen({ navigation, route }: any) {
             <TextInput style={[s.input, s.rowInput]} placeholder="Cook (min)" placeholderTextColor={colours.textGhost} value={form.cookTime} onChangeText={v => setForm(f => ({ ...f, cookTime: v }))} keyboardType="numeric" />
           </View>
           <TextInput style={s.input} placeholder="Tags (comma separated)" placeholderTextColor={colours.textGhost} value={form.tags} onChangeText={v => setForm(f => ({ ...f, tags: v }))} />
+          <View style={s.tagChipRow}>
+            {CATEGORIES.map(c => {
+              const active = currentTags.some(t => t.toLowerCase() === c.toLowerCase());
+              return (
+                <TouchableOpacity key={c} style={[s.tagChip, active && s.tagChipActive]} onPress={() => toggleTag(c)}>
+                  <Text style={[s.tagChipText, active && s.tagChipTextActive]}>{c}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {currentTags.length === 0 && (
+            <Text style={s.tagHint}>Pick at least one tag above, or type your own in the field.</Text>
+          )}
           <TextInput style={s.input} placeholder="Image URL (optional)" placeholderTextColor={colours.textGhost} value={form.image} onChangeText={v => setForm(f => ({ ...f, image: v }))} autoCapitalize="none" keyboardType="url" />
 
           <Text style={s.sectionLabel}>Ingredients</Text>
@@ -257,6 +284,12 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   scrollContent:   { padding: 16, gap: 8 },
   sectionLabel:    { fontSize: 10, color: colours.textGhost, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 12, marginBottom: 4 },
   input:           { backgroundColor: colours.surface, borderWidth: 0.5, borderColor: colours.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, color: colours.text, fontSize: 13 },
+  tagChipRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tagChip:         { backgroundColor: colours.surface, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 0.5, borderColor: colours.border },
+  tagChipActive:   { backgroundColor: colours.accent, borderColor: colours.accent },
+  tagChipText:     { fontSize: 12, color: colours.textDim, fontWeight: '500' },
+  tagChipTextActive: { color: '#fff' },
+  tagHint:         { fontSize: 11, color: colours.error },
   textarea:        { minHeight: 72, textAlignVertical: 'top' },
   row:             { flexDirection: 'row', gap: 8 },
   rowInput:        { flex: 1 },
