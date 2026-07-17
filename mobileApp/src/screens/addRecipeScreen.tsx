@@ -9,6 +9,7 @@ import { api } from '../api';
 import { ICONS } from '../constants/icons';
 import { CATEGORIES } from '../constants/categories';
 import { useTheme } from '../theme/Themecontext';
+import { RecipeBrowser } from '../util/recipeBrowser';
 
 // Keeps picked photos small enough for quick uploads over local WiFi and
 // comfortably under AsyncStorage's per-item size limit while still sitting
@@ -38,7 +39,7 @@ export default function AddRecipeScreen({ navigation, route }: any) {
 
   const { save, update } = useRecipes()
   const [form,      setForm]      = useState(EMPTY);
-  const [tab,       setTab]       = useState<'manual' | 'url'>('manual');
+  const [tab,       setTab]       = useState<'manual' | 'url' | 'browser'>('manual');
   const [url,       setUrl]       = useState('');
   const [importing, setImporting] = useState(false);
   const [saving,    setSaving]    = useState(false);
@@ -121,11 +122,11 @@ export default function AddRecipeScreen({ navigation, route }: any) {
     });
   }, [isEditing, editingRecipe]);
 
-  const handleImport = async () => {
-    if (!url.trim()) return;
+  const importFrom = async (targetUrl: string) => {
+    if (!targetUrl.trim()) return;
     setImporting(true);
     try {
-      const data = await api.importUrl(url.trim());
+      const data = await api.importUrl(targetUrl.trim());
       console.log("IMPORT RESULT:", data);
       setForm({
         title:       data.title       ?? '',
@@ -148,6 +149,8 @@ export default function AddRecipeScreen({ navigation, route }: any) {
       setImporting(false);
     }
   };
+
+  const handleImport = () => importFrom(url);
 
   const handleSave = async () => {
     if (!form.title.trim()) return;
@@ -208,6 +211,9 @@ export default function AddRecipeScreen({ navigation, route }: any) {
           <TouchableOpacity style={[s.tab, tab === 'url' && s.tabActive]} onPress={() => setTab('url')}>
             <Text style={[s.tabText, tab === 'url' && s.tabTextActive]}>Import URL</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={[s.tab, tab === 'browser' && s.tabActive]} onPress={() => setTab('browser')}>
+            <Text style={[s.tabText, tab === 'browser' && s.tabTextActive]}>Browser</Text>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity style={[s.saveBtn, !canSave && s.saveBtnDisabled]} onPress={handleSave} disabled={!canSave || saving}>
           {saving ? <ActivityIndicator color={colours.text} size="small" /> : <Text style={s.saveBtnText}>Save</Text>}
@@ -221,6 +227,8 @@ export default function AddRecipeScreen({ navigation, route }: any) {
             {importing ? <ActivityIndicator color={colours.text} size="small" /> : <Text style={s.importBtnText}>Import</Text>}
           </TouchableOpacity>
         </View>
+      ) : tab === 'browser' ? (
+        <RecipeBrowser importing={importing} onAddToRecipes={importFrom} />
       ) : (
         <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
           <Text style={s.sectionLabel}>Basic Info</Text>
