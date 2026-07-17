@@ -135,7 +135,7 @@ export default function SettingsScreen() {
             placeholder='192.xxx.x.xxx'
             value={ipAddress}
             onChangeText={setIpAddress}
-            keyboardType="numbers-and-punctuation"
+            keyboardType="number-pad"
             autoCapitalize="none"
             returnKeyType="done"
           />
@@ -145,7 +145,7 @@ export default function SettingsScreen() {
             placeholder='3000'
             value={port}
             onChangeText={setPort}
-            keyboardType="numbers-and-punctuation"
+            keyboardType="number-pad"
             autoCapitalize="none"
             returnKeyType="done"
           />
