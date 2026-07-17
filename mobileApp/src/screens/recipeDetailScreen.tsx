@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Alert,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Image,
 } from 'react-native';
 import { Recipe } from '../types';
-import { shoppingList } from '../shoppingList';
 import { useRecipes } from '../context/RecipesContext';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
 import { ROUTES } from '../constants/routes';
 import { scaleAmount } from '../util/cleanIngridents';
+import { ShoppingListPickerModal } from '../util/shoppingListPickerModal';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -24,6 +24,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const params = route.params as { id?: string; recipe?: Recipe };
   const recipe: Recipe | undefined = recipes.find(r => r.id === params.id) || params.recipe;
   const [servings, setServings] = useState<number>(recipe?.servings ?? 1);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   if (!recipe) {
     return (
@@ -53,47 +54,45 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
     }
   };
 
-  const handleAddToShoppingList = async () => {
-    const items = (recipe.ingredients ?? [])
-      .filter(i => i.name.trim())
-      .map(i => ({
-        name: i.name,
-        unit: i.unit,
-        amount: i.amount != null ? (i.amount * servings) / recipe.servings : null,
-      }));
-    await shoppingList.addIngredients(items, recipe.title);
-    Alert.alert('Added to shopping list', `${items.length} ingredient${items.length === 1 ? '' : 's'} added.`);
-  };
 
   return (
     <View style={s.container}>
-      {/* Header image */}
-      {recipe.image
-        ? <Image source={{ uri: recipe.image }} style={s.hero} />
-        : <View style={[s.hero, s.heroPlaceholder]}><Text style={s.heroEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text></View>
-      }
-
-      {/* Back button */}
-      <TouchableOpacity style={s.back} onPress={() => navigation.goBack()}>
-        <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} /></Text>
-      </TouchableOpacity>
-
-      {/* Favourite toggle */}
-      <TouchableOpacity style={s.favBtn} onPress={() => toggleFavourite(recipe.id)}>
-        {recipe.favourite
-          ? <HeartIcon name={heartIcon} size={20} color="#ff5c7a" />
-          : <HeartOutlineIcon name={heartOutlineIcon} size={20} color={colours.text} />
+      <View style={s.imgContainer}>
+        {/* Header image */}
+        {recipe.image
+          ? <Image source={{ uri: recipe.image }} style={s.hero} />
+          : <View style={[s.hero, s.heroPlaceholder]}><Text style={s.heroEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text></View>
         }
-      </TouchableOpacity>
 
-      {/* Delete button */}
-      <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete()}>
-        <Text style={s.deleteBtnText}>Delete</Text>
-      </TouchableOpacity>
+        {/* Back button */}
+        <TouchableOpacity style={s.back} onPress={() => navigation.goBack()}>
+          <Text style={s.backText}><ArrowLeftIcon name={arrowLeftIcon} size={24} /></Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={s.editBtn} onPress={() => navigation.navigate(ROUTES.ADD_RECIPE, { recipe })}>
-        <Text style={s.editBtnText}>Edit</Text>
-      </TouchableOpacity>
+        {/* Favourite toggle */}
+        <TouchableOpacity style={s.favBtn} onPress={() => toggleFavourite(recipe.id)}>
+          {recipe.favourite
+            ? <HeartIcon name={heartIcon} size={20} color={colours.error} />
+            : <HeartOutlineIcon name={heartOutlineIcon} size={20} color={colours.text} />
+          }
+        </TouchableOpacity>
+
+        {/* Delete button */}
+        <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete()}>
+          <Text style={s.deleteBtnText}>Delete</Text>
+        </TouchableOpacity>
+
+        {/* Edit button */}
+        <TouchableOpacity style={s.editBtn} onPress={() => navigation.navigate(ROUTES.ADD_RECIPE, { recipe })}>
+          <Text style={s.editBtnText}>Edit</Text>
+        </TouchableOpacity>
+
+        {/* Shooping List button */}
+        <TouchableOpacity style={s.addToListBtn} onPress={() => setPickerVisible(true)}>
+          <CartIcon name={cartIcon} size={14} color={colours.text} />
+          <Text style={s.addToListBtnText}>Add to shopping list</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Cook button */}
       <TouchableOpacity style={s.cookBtn} onPress={() => navigation.navigate(ROUTES.COOKING_MODE, { recipe, servings })}>
@@ -134,11 +133,6 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        <TouchableOpacity style={s.addToListBtn} onPress={handleAddToShoppingList}>
-          <CartIcon name={cartIcon} size={14} color={colours.accent} />
-          <Text style={s.addToListBtnText}>Add to shopping list</Text>
-        </TouchableOpacity>
-
         {(recipe.ingredients ?? []).map((ing, i) => (
           <View key={i} style={s.ingredient}>
             <Text style={s.ingredientAmount}>
@@ -159,20 +153,28 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <ShoppingListPickerModal
+        recipe={recipe}
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        servings={servings}
+      />
     </View>
   );
 }
 
 const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleSheet.create({
   container:        { flex: 1, backgroundColor: colours.bg },
+  imgContainer:     { },
   hero:             { width: '100%', height: 220 },
   heroPlaceholder:  { backgroundColor: colours.accentBg, alignItems: 'center', justifyContent: 'center' },
   heroEmoji:        { fontSize: 60 },
   back:             { position: 'absolute', top: 20, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
   backText:         { color: colours.text, fontSize: 18 },
   favBtn:           { position: 'absolute', top: 20, left: 60, width: 36, height: 36, borderRadius: 18, backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
-  addToListBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colours.accentBg, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 14 },
-  addToListBtnText: { color: colours.accent, fontSize: 12, fontWeight: '600' },
+  addToListBtn:     { position: 'absolute', bottom: 12, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colours.accent, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
+  addToListBtnText: { color: colours.text, fontSize: 12, fontWeight: '600' },
   cookBtn:          { position: 'absolute', bottom: 4, backgroundColor: colours.accent, borderRadius: 8, paddingHorizontal: "30%", paddingVertical: 8, alignSelf: 'center', zIndex: 999, elevation: 10 },
   cookBtnText:      { color: colours.text, fontSize: 13, fontWeight: '600' },
   deleteBtn:        { position: 'absolute', top: 20, right: 16, backgroundColor: colours.error, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },

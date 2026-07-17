@@ -18,6 +18,7 @@ import { ROUTES } from './src/constants/routes';
 import SettingsScreen from './src/screens/settingsScreen';
 import { ThemeProvider, useTheme } from './src/theme/Themecontext';
 import { ConfigProvider } from './src/context/ConfigContext';
+import { AlertHost } from './src/util/AlertHost';
 
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -74,6 +75,7 @@ function AppContent() {
                 <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
               </Stack.Navigator>
             </NavigationContainer>
+            <AlertHost />
           </SafeAreaView>
         </SafeAreaProvider>
       </RecipesProvider>

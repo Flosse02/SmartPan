@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { shoppingList, ShoppingListItem } from '../shoppingList';
 import { Header } from '../util/header';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
 import { formatFraction } from '../util/cleanIngridents';
+import { alert } from '../util/alertStore';
 
 function fmtAmount(item: ShoppingListItem) {
   return [item.amount != null ? formatFraction(Number(item.amount.toFixed(3))) : null, item.unit]
@@ -37,7 +38,7 @@ export default function ShoppingListScreen() {
   };
 
   const clearAll = () => {
-    Alert.alert('Clear shopping list', 'Remove everything from the list?', [
+    alert('Clear shopping list', 'Remove everything from the list?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Clear all',
@@ -86,7 +87,7 @@ export default function ShoppingListScreen() {
                 </View>
                 <View style={s.rowText}>
                   <Text style={[s.itemName, item.checked && s.itemNameChecked]}>
-                    {item.name}{fmtAmount(item) ? `  ·  ${fmtAmount(item)}` : ''}
+                    {fmtAmount(item) ? `${fmtAmount(item)} ` : ''}{item.name}
                   </Text>
                   <Text style={s.itemSource} numberOfLines={1}>{item.recipeTitles.join(', ')}</Text>
                 </View>

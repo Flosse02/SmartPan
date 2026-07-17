@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
 import { useRecipes } from '../context/RecipesContext';
+import { ShoppingListPickerModal } from './shoppingListPickerModal';
 
 function fmtTime(min?: number) {
   if (!min) return null;
@@ -21,11 +22,15 @@ export function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () =>
   const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
   const {as: HeartIcon, name: heartIcon} = ICONS.HEART;
   const {as: HeartOutlineIcon, name: heartOutlineIcon} = ICONS.HEART_OUTLINE;
+  const {as: CartIcon, name: cartIcon} = ICONS.CART_OUTLINE;
+
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
   const pendingSync = recipe.id.startsWith('temp-') || !!recipe.editPending;
 
   return (
+    <>
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.7}>
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.cardImage} />
@@ -37,6 +42,14 @@ export function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () =>
           <Text style={s.syncBadgeText}>Pending sync</Text>
         </View>
       )}
+
+      <TouchableOpacity
+        style={s.cartBtn}
+        onPress={() => setPickerVisible(true)}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <CartIcon name={cartIcon} size={14} color="#fff" />
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={s.favBtn}
@@ -63,6 +76,12 @@ export function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () =>
         )}
       </View>
     </TouchableOpacity>
+    <ShoppingListPickerModal
+      recipe={recipe}
+      visible={pickerVisible}
+      onClose={() => setPickerVisible(false)}
+    />
+    </>
   );
 }
 
@@ -71,7 +90,8 @@ export const createStyles = (colours: ReturnType<typeof useTheme>['colours']) =>
   cardImage:            { width: '100%', height: 110 },
   cardImagePlaceholder: { backgroundColor: colours.accentBg, alignItems: 'center', justifyContent: 'center' },
   cardImageEmoji:       { fontSize: 36 },
-  syncBadge:            { position: 'absolute', top: 6, left: 6, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colours.surface, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  syncBadge:            { position: 'absolute', top: 38, left: 6, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colours.surface, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  cartBtn:              { position: 'absolute', top: 6, left: 6, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   syncBadgeText:        { fontSize: 9, color: colours.accent, fontWeight: '600' },
   favBtn:               { position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   cardBody:             { padding: 10, gap: 5 },
