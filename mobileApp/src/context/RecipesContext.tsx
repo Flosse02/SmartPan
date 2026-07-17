@@ -79,11 +79,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         console.log('[WS] connected');
         setConnected(true);
 
-        // Push anything created while offline, then pull a fresh merged
-        // list so both this device and the dashboard end up in sync.
+        // Push anything created or edited while offline, then pull a fresh
+        // merged list so both this device and the dashboard end up in sync.
         (async () => {
           try {
             await api.pushUnsyncedRecipes();
+            await api.pushPendingEdits();
             const data = await api.getRecipes();
             setRecipes(withPrefs(data, prefsRef.current));
           } catch (e) {

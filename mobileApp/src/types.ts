@@ -31,4 +31,8 @@ export interface Recipe {
   // storage — never sent to the server, since the Pi server/dashboard has
   // no concept of per-device favourite state.
   favourite?:   boolean;
+  // Set by api.updateRecipe when an edit's PUT fails offline; cleared once
+  // pushPendingEdits successfully retries it. Stripped from outgoing PUT
+  // bodies — see updateRecipe in api.ts.
+  editPending?: boolean;
 }

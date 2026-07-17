@@ -41,7 +41,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const {as: HeartIcon, name: heartIcon} = ICONS.HEART;
   const {as: HeartOutlineIcon, name: heartOutlineIcon} = ICONS.HEART_OUTLINE;
   const {as: CartIcon, name: cartIcon} = ICONS.CART_OUTLINE;
-  const pendingSync = recipe.id.startsWith('temp-');
+  const pendingSync = recipe.id.startsWith('temp-') || !!recipe.editPending;
 
   const handleDelete = async () => {
     try {

@@ -26,6 +26,21 @@ export function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/**
+ * Strips parenthetical asides from an ingredient name — leftover amount
+ * annotations the importer couldn't fully separate out (e.g. "(50g)
+ * granulated sugar") and prep notes (e.g. "Apple (cored and cut in
+ * cubes)") both just clutter a shopping list entry, since the actual
+ * amount/unit are already tracked as separate fields.
+ */
+export function cleanIngredientName(name: string): string {
+  if (!name) return name;
+  return name
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function formatFraction(value: number) {
   const fractions: Record<number, string> = {
     0.125: '1/8',

@@ -48,7 +48,7 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
   const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
-  const pendingSync = recipe.id.startsWith('temp-');
+  const pendingSync = recipe.id.startsWith('temp-') || !!recipe.editPending;
   return (
     <TouchableOpacity style={s.featured} onPress={onPress} activeOpacity={0.8}>
       {recipe.image
@@ -91,7 +91,7 @@ function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) 
   const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
-  const pendingSync = recipe.id.startsWith('temp-');
+  const pendingSync = recipe.id.startsWith('temp-') || !!recipe.editPending;
   return (
     <TouchableOpacity style={s.miniCard} onPress={onPress} activeOpacity={0.8}>
       {recipe.image

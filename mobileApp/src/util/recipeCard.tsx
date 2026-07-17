@@ -23,7 +23,7 @@ export function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () =>
   const {as: HeartOutlineIcon, name: heartOutlineIcon} = ICONS.HEART_OUTLINE;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
-  const pendingSync = recipe.id.startsWith('temp-');
+  const pendingSync = recipe.id.startsWith('temp-') || !!recipe.editPending;
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.7}>

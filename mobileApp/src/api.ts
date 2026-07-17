@@ -359,15 +359,23 @@ export const api = {
     // silently discards the edit on reconnect. Bumping it here means the
     // edit's timestamp already reflects "now" and wins that comparison
     // until a successful PUT lets the server's own updatedAt take over.
-    const updated = { ...data, updatedAt: new Date().toISOString() };
+    // editPending/editSyncAttempts/editNextRetryAt are this function's own
+    // retry bookkeeping (see pushPendingEdits below) — strip them from the
+    // incoming payload so a retry doesn't send stale markers back to the
+    // server as if they were real recipe fields.
+    const { editPending, editSyncAttempts, editNextRetryAt, ...cleanData } = data;
+    const updated = { ...cleanData, updatedAt: new Date().toISOString() };
     await localStore.update(updated);
     try {
       const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(updated) });
-      await localStore.update(real);
+      // Clear any pending-edit retry state now that the server has the latest.
+      await localStore.update({ ...real, editPending: false, editSyncAttempts: undefined, editNextRetryAt: undefined });
       return real;
     } catch {
       console.log('Server offline');
-      return updated;
+      const pending = { ...updated, editPending: true };
+      await localStore.update(pending);
+      return pending;
     }
   },
 
@@ -425,6 +433,45 @@ export const api = {
         });
         console.log(
           `Failed to push offline recipe (attempt ${attempts}), retrying in ${Math.round(delayMs / 1000)}s:`,
+          (localRecipe as any).title
+        );
+      }
+    }
+  },
+
+  /**
+   * Retries recipes whose edit failed to PUT while offline. updateRecipe
+   * marks a record editPending=true when the PUT fails; that's a real,
+   * non-temp server id, so it can't reuse the temp- prefix pushUnsyncedRecipes
+   * relies on — hence a separate flag and its own editSyncAttempts/
+   * editNextRetryAt backoff, mirroring pushUnsyncedRecipes exactly. Without
+   * this, an offline edit's bumped updatedAt lets it win the local merge
+   * (see updateRecipe) but never actually reaches the server or dashboard.
+   */
+  pushPendingEdits: async (): Promise<void> => {
+    const local = await localStore.getAll();
+    const now = Date.now();
+    const pending = local.filter((r: any) =>
+      r.editPending &&
+      (!r.editNextRetryAt || new Date(r.editNextRetryAt).getTime() <= now)
+    );
+
+    for (const localRecipe of pending) {
+      try {
+        const { editPending, editSyncAttempts, editNextRetryAt, ...data } = localRecipe as any;
+        const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(data) });
+        await localStore.update({ ...real, editPending: false, editSyncAttempts: undefined, editNextRetryAt: undefined });
+        console.log('Pushed pending edit to server:', real.title);
+      } catch (e) {
+        const attempts = ((localRecipe as any).editSyncAttempts ?? 0) + 1;
+        const delayMs = Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempts - 1), RETRY_MAX_DELAY_MS);
+        await localStore.update({
+          ...localRecipe,
+          editSyncAttempts: attempts,
+          editNextRetryAt: new Date(now + delayMs).toISOString(),
+        });
+        console.log(
+          `Failed to push pending edit (attempt ${attempts}), retrying in ${Math.round(delayMs / 1000)}s:`,
           (localRecipe as any).title
         );
       }

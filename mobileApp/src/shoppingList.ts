@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { normaliseUnit, capitalise } from './util/cleanIngridents';
+import { normaliseUnit, capitalise, cleanIngredientName } from './util/cleanIngridents';
 
 const KEY = 'shopping_list';
 
@@ -51,7 +51,7 @@ export const shoppingList = {
     const list = await readAll();
 
     for (const ing of ingredients) {
-      const name = ing.name.trim();
+      const name = cleanIngredientName(ing.name);
       if (!name) continue;
       const unit = ing.unit?.trim() ? normaliseUnit(ing.unit.trim()) : null;
       const key = matchKey(name, unit);
