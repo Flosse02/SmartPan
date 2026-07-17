@@ -79,6 +79,8 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const {as: ArrowLeftIcon, name: arrowLeftIcon} = ICONS.ARROW_LEFT;
   const {as: AddIcon, name: addIcon} = ICONS.ADD;
   const {as: MinusIcon, name: minusIcon} = ICONS.MINUS;
+  const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
+  const pendingSync = recipe.id.startsWith('temp-');
 
   const handleDelete = async () => {
     try {
@@ -123,6 +125,11 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
         {recipe.description && <Text style={s.desc}>{recipe.description}</Text>}
 
         <View style={s.metaRow}>
+          {pendingSync && (
+            <View style={s.badge}>
+              <Text style={s.badgeText}><SyncPendingIcon name={syncPendingIcon} size={11} /> Pending sync</Text>
+            </View>
+          )}
           {fmtTime(recipe.prepTime) && <View style={s.badge}><Text style={s.badgeText}>Prep {fmtTime(recipe.prepTime)}</Text></View>}
           {fmtTime(recipe.cookTime) && <View style={s.badge}><Text style={s.badgeText}>Cook {fmtTime(recipe.cookTime)}</Text></View>}
           {(recipe.tags ?? []).map(t => (

@@ -16,6 +16,7 @@ import { ICONS } from '../constants/icons';
 import { Header } from '../util/header';
 import { SearchBar } from '../util/searchBar';
 import { useTheme } from '../theme/Themecontext';
+import { ROUTES } from '../constants/routes';
 
 
 const MEAL_OPTIONS = ['Any', 'Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack'];
@@ -43,14 +44,22 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: HeadIcon, name: headIcon} = ICONS.HEAD;
   const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
+  const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
+  const pendingSync = recipe.id.startsWith('temp-');
   return (
     <TouchableOpacity style={s.featured} onPress={onPress} activeOpacity={0.8}>
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.featuredImg} />
         : <View style={[s.featuredImg, s.featuredImgPlaceholder]}><Text style={s.featuredEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={40} /></Text></View>
       }
+      {pendingSync && (
+        <View style={s.syncBadge}>
+          <SyncPendingIcon name={syncPendingIcon} size={11} color={colours.accent} />
+          <Text style={s.syncBadgeText}>Pending sync</Text>
+        </View>
+      )}
       <View style={s.featuredBody}>
         <Text style={s.featuredTitle} numberOfLines={1}>{recipe.title}</Text>
         <Text style={s.featuredMeta}>
@@ -78,14 +87,21 @@ function MiniCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) 
   const s = createStyles(colours);
   const {as: ImagePlaceholderIcon, name: imagePlaceholderIcon} = ICONS.IMAGE_PLACEHOLDER;
   const {as: TimerIcon, name: timerIcon} = ICONS.TIMER;
+  const {as: SyncPendingIcon, name: syncPendingIcon} = ICONS.SYNC_PENDING;
 
   const total = (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0);
+  const pendingSync = recipe.id.startsWith('temp-');
   return (
     <TouchableOpacity style={s.miniCard} onPress={onPress} activeOpacity={0.8}>
       {recipe.image
         ? <Image source={{ uri: recipe.image }} style={s.miniImg} />
         : <View style={[s.miniImg, s.miniImgPlaceholder]}><Text style={s.miniEmoji}><ImagePlaceholderIcon name={imagePlaceholderIcon} size={24} /></Text></View>
       }
+      {pendingSync && (
+        <View style={s.miniSyncBadge}>
+          <SyncPendingIcon name={syncPendingIcon} size={9} color={colours.accent} />
+        </View>
+      )}
       <View style={s.miniBody}>
         <Text style={s.miniTitle} numberOfLines={2}>{recipe.title}</Text>
         {total > 0 && <Text style={s.miniMeta}><TimerIcon name={timerIcon} size={10} />{fmtTime(total)}</Text>}
@@ -108,7 +124,7 @@ export default function HomeScreen({ navigation }: any) {
   const recent    = recipes.slice(1, 6);
 
   const handleSearch = () => {
-    if (query.trim()) navigation.navigate('RecipeList', { query });
+    if (query.trim()) navigation.navigate(ROUTES.RECIPES, { query });
   };
 
   const {as: ArrowRightIcon, name: arrowRightIcon} = ICONS.ARROW_RIGHT;
@@ -269,6 +285,9 @@ const createStyles = (colours: ReturnType<typeof useTheme>['colours']) => StyleS
   featuredImg:          { width: '100%', height: 140 },
   featuredImgPlaceholder:{ backgroundColor: colours.surface, alignItems: 'center', justifyContent: 'center' },
   featuredEmoji:        { fontSize: 48 },
+  syncBadge:            { position: 'absolute', top: 8, left: 8, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colours.surface, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  syncBadgeText:        { fontSize: 9, color: colours.accent, fontWeight: '600' },
+  miniSyncBadge:        { position: 'absolute', top: 4, left: 4, backgroundColor: colours.surface, borderRadius: 8, padding: 3 },
   featuredBody:         { padding: 12 },
   featuredTitle:        { fontSize: 16, fontWeight: '600', color: colours.text },
   featuredMeta:         { fontSize: 12, color: colours.textGhost, marginTop: 4 },

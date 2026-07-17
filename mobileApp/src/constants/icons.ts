@@ -38,6 +38,7 @@ export const ICONS = {
   TICK: {as: MaterialCommunityIcons , name: 'check'},
   HEAD: {as: MaterialIcons , name: 'person'},
   TIMER: {as: MaterialIcons , name: 'timer'},
+  SYNC_PENDING: {as: MaterialCommunityIcons , name: 'cloud-sync-outline'},
 } as const;
 
 export type IconConstType = typeof ICONS;

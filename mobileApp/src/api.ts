@@ -3,6 +3,9 @@ import { localStore } from './localStore';
 import ENV from './constants/ENV';
 import { getApiBaseUrl } from './config/apiConfig';
 
+const RETRY_BASE_DELAY_MS = 5_000;
+const RETRY_MAX_DELAY_MS = 5 * 60_000;
+
 async function req(path: string, options?: RequestInit) {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     ...options,
@@ -371,13 +374,22 @@ export const api = {
   },
 
   updateRecipe: async (data: any) => {
-    await localStore.update(data);
+    // Bump updatedAt locally before the server ever sees it. Without this,
+    // an edit made offline keeps its pre-edit timestamp, so getRecipes()'s
+    // `remoteTime >= localTime` merge picks the untouched server copy and
+    // silently discards the edit on reconnect. Bumping it here means the
+    // edit's timestamp already reflects "now" and wins that comparison
+    // until a successful PUT lets the server's own updatedAt take over.
+    const updated = { ...data, updatedAt: new Date().toISOString() };
+    await localStore.update(updated);
     try {
-      await req('/api/recipes', { method: 'PUT', body: JSON.stringify(data) });
+      const real = await req('/api/recipes', { method: 'PUT', body: JSON.stringify(updated) });
+      await localStore.update(real);
+      return real;
     } catch {
       console.log('Server offline');
+      return updated;
     }
-    return data;
   },
 
   deleteRecipe: async (id: string) => {
@@ -396,14 +408,27 @@ export const api = {
    * "genuinely unsynced" — rather than a loosely-tracked source flag,
    * which is what caused the original duplication bugs. Safe to call
    * repeatedly; already-synced recipes have no temp- id left to match.
+   *
+   * Retries are backed off per-record (syncAttempts/nextRetryAt on the
+   * local cache entry) rather than left to fire on every WS reconnect —
+   * with the flat 3s reconnect timer in RecipesContext, an unreachable
+   * server would otherwise mean a POST attempt every 3 seconds forever.
+   * The interval doubles per failed attempt, capped at RETRY_MAX_DELAY_MS;
+   * there's no attempt cap, since these are real unsynced user recipes and
+   * dropping them would be data loss, not just a skipped retry.
    */
   pushUnsyncedRecipes: async (): Promise<void> => {
     const local = await localStore.getAll();
-    const unsynced = local.filter((r: any) => typeof r.id === 'string' && r.id.startsWith('temp-'));
+    const now = Date.now();
+    const unsynced = local.filter((r: any) =>
+      typeof r.id === 'string' &&
+      r.id.startsWith('temp-') &&
+      (!r.nextRetryAt || new Date(r.nextRetryAt).getTime() <= now)
+    );
 
     for (const localRecipe of unsynced) {
       try {
-        const { id, createdAt, updatedAt, source, ...data } = localRecipe as any;
+        const { id, createdAt, updatedAt, source, syncAttempts, nextRetryAt, ...data } = localRecipe as any;
         const real = await req('/api/recipes', {
           method: 'POST',
           body: JSON.stringify(data),
@@ -412,7 +437,17 @@ export const api = {
         await localStore.add(real);
         console.log('Pushed offline recipe to server:', real.title);
       } catch (e) {
-        console.log('Failed to push offline recipe, will retry next reconnect:', localRecipe.title);
+        const attempts = ((localRecipe as any).syncAttempts ?? 0) + 1;
+        const delayMs = Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempts - 1), RETRY_MAX_DELAY_MS);
+        await localStore.update({
+          ...localRecipe,
+          syncAttempts: attempts,
+          nextRetryAt: new Date(now + delayMs).toISOString(),
+        });
+        console.log(
+          `Failed to push offline recipe (attempt ${attempts}), retrying in ${Math.round(delayMs / 1000)}s:`,
+          (localRecipe as any).title
+        );
       }
     }
   },
