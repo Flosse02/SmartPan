@@ -4,6 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar, StyleSheet } from 'react-native';
 import { RecipesProvider } from './src/context/RecipesContext';
+import { SocketProvider } from './src/context/SocketContext';
+import { ShoppingListProvider } from './src/context/ShoppingListContext';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import HomeScreen from './src/screens/homeScreen';
@@ -84,28 +86,32 @@ function AppContent() {
 
   return (
     <ConfigProvider>
-      <RecipesProvider>
-        <SafeAreaProvider>
-          <SafeAreaView style={s.safeArea}>
-            <NavigationContainer linking={linking}>
-              <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colours.bg} />
+      <SocketProvider>
+        <RecipesProvider>
+          <ShoppingListProvider>
+            <SafeAreaProvider>
+              <SafeAreaView style={s.safeArea}>
+                <NavigationContainer linking={linking}>
+                  <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colours.bg} />
 
-              <Stack.Navigator
-                screenOptions={{
-                  headerShown: false,
-                  cardStyle: { backgroundColor: colours.bg },
-                }}
-              >
-                <Stack.Screen name="Main" component={MainTabs} />
-                <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
-                <Stack.Screen name="CookingMode" component={CookingModeScreen} />
-                <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
-              </Stack.Navigator>
-            </NavigationContainer>
-            <AlertHost />
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </RecipesProvider>
+                  <Stack.Navigator
+                    screenOptions={{
+                      headerShown: false,
+                      cardStyle: { backgroundColor: colours.bg },
+                    }}
+                  >
+                    <Stack.Screen name="Main" component={MainTabs} />
+                    <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+                    <Stack.Screen name="CookingMode" component={CookingModeScreen} />
+                    <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
+                  </Stack.Navigator>
+                </NavigationContainer>
+                <AlertHost />
+              </SafeAreaView>
+            </SafeAreaProvider>
+          </ShoppingListProvider>
+        </RecipesProvider>
+      </SocketProvider>
     </ConfigProvider>
   );
 }

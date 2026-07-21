@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, AppState } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { shoppingList, ShoppingListItem } from '../shoppingList';
+import React, { useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { ShoppingListItem } from '../shoppingList';
+import { useShoppingList } from '../context/ShoppingListContext';
 import { Header } from '../util/header';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
@@ -18,46 +18,15 @@ function fmtAmount(item: ShoppingListItem) {
 export default function ShoppingListScreen() {
   const { colours } = useTheme();
   const s = createStyles(colours);
-  const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const { items, toggleChecked, removeItem, clearChecked, clearAll } = useShoppingList();
 
-  const load = useCallback(() => {
-    shoppingList.getAll().then(setItems);
-  }, []);
-
-  useFocusEffect(load);
-
-  // useFocusEffect only fires on in-app navigation transitions — if this
-  // tab was already active when the app was backgrounded (e.g. tapping the
-  // widget to reopen the app while already on Shopping List), navigating
-  // "into" the same already-focused screen isn't a focus change, so it
-  // never re-fires. The widget can toggle items while the app is
-  // backgrounded, so also refresh whenever the app returns to the foreground.
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', state => {
-      if (state === 'active') load();
-    });
-    return () => sub.remove();
-  }, [load]);
-
-  const toggle = async (id: string) => {
-    setItems(await shoppingList.toggleChecked(id));
-  };
-
-  const remove = async (id: string) => {
-    setItems(await shoppingList.removeItem(id));
-  };
-
-  const clearChecked = async () => {
-    setItems(await shoppingList.clearChecked());
-  };
-
-  const clearAll = () => {
+  const clearAllConfirm = () => {
     alert('Clear shopping list', 'Remove everything from the list?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Clear all',
         style: 'destructive',
-        onPress: async () => setItems(await shoppingList.clearAll()),
+        onPress: clearAll,
       },
     ]);
   };
@@ -85,7 +54,7 @@ export default function ShoppingListScreen() {
           <TouchableOpacity style={s.actionBtn} disabled={checkedCount === 0} onPress={clearChecked}>
             <Text style={[s.actionBtnText, checkedCount === 0 && s.actionBtnTextDisabled]}>Clear checked</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.actionBtn} onPress={clearAll}>
+          <TouchableOpacity style={s.actionBtn} onPress={clearAllConfirm}>
             <Text style={s.actionBtnTextDanger}>Clear all</Text>
           </TouchableOpacity>
         </View>
@@ -100,7 +69,7 @@ export default function ShoppingListScreen() {
           contentContainerStyle={s.list}
           renderItem={({ item }) => (
             <View style={s.row}>
-              <TouchableOpacity style={s.rowMain} onPress={() => toggle(item.id)} activeOpacity={0.7}>
+              <TouchableOpacity style={s.rowMain} onPress={() => toggleChecked(item.id)} activeOpacity={0.7}>
                 <View style={[s.checkbox, item.checked && s.checkboxChecked]}>
                   {item.checked && <CheckIcon name={checkIcon} size={12} color="#fff" />}
                 </View>
@@ -111,7 +80,7 @@ export default function ShoppingListScreen() {
                   <Text style={s.itemSource} numberOfLines={1}>{item.recipeTitles.join(', ')}</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => remove(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity onPress={() => removeItem(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <TrashIcon name={trashIcon} size={18} color={colours.textGhost} />
               </TouchableOpacity>
             </View>
@@ -122,7 +91,6 @@ export default function ShoppingListScreen() {
       <AddShoppingListItemModal
         visible={pickerVisible}
         onClose={() => setPickerVisible(false)}
-        onAdded={setItems}
       />
     </View>
   );

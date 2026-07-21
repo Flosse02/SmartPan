@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { normaliseUnit, capitalise, cleanIngredientName } from './util/cleanIngridents';
 import { pushShoppingListWidgetUpdate } from './widgets/shoppingListWidgetSync';
+// Value import — safe because api.ts only imports ShoppingListItem back as a
+// type (erased at compile time), so this doesn't form a real circular require.
+import { api } from './api';
 
 const KEY = 'shopping_list';
 
@@ -19,9 +22,26 @@ export interface ShoppingListIngredient {
   name: string;
 }
 
-async function readAll(): Promise<ShoppingListItem[]> {
+interface ShoppingListState {
+  items: ShoppingListItem[];
+  updatedAt: string;
+}
+
+// Epoch — used for storage that predates server sync (or was never synced),
+// so a real server updatedAt always wins the first reconcile.
+const NEVER_SYNCED = new Date(0).toISOString();
+
+async function readState(): Promise<ShoppingListState> {
   const data = await AsyncStorage.getItem(KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return { items: [], updatedAt: NEVER_SYNCED };
+  const parsed = JSON.parse(data);
+  // Pre-sync storage shape was a bare array — treat it as never-synced.
+  if (Array.isArray(parsed)) return { items: parsed, updatedAt: NEVER_SYNCED };
+  return parsed;
+}
+
+async function readAll(): Promise<ShoppingListItem[]> {
+  return (await readState()).items;
 }
 
 interface WriteOptions {
@@ -30,11 +50,24 @@ interface WriteOptions {
   // rebuild the widget's RemoteViews tree twice for one tap, which is what
   // caused the visible flash. Only the widget task handler passes this.
   skipWidgetSync?: boolean;
+  // Set when writing data that already came from the server (a reconcile
+  // GET or a shopping_note_updated broadcast) — PUTing it straight back
+  // would just be a wasted round trip.
+  skipServerSync?: boolean;
+  // Preserves the server's own updatedAt when writing server-origin data,
+  // instead of stamping "now" as if this were a fresh local edit.
+  updatedAt?: string;
 }
 
-async function writeAll(items: ShoppingListItem[], options?: WriteOptions) {
-  await AsyncStorage.setItem(KEY, JSON.stringify(items));
+async function writeAll(items: ShoppingListItem[], options?: WriteOptions): Promise<ShoppingListItem[]> {
+  const updatedAt = options?.updatedAt ?? new Date().toISOString();
+  await AsyncStorage.setItem(KEY, JSON.stringify({ items, updatedAt }));
   if (!options?.skipWidgetSync) pushShoppingListWidgetUpdate(items);
+  if (!options?.skipServerSync) {
+    api.putShoppingNote({ items, updatedAt }).catch(() => {
+      console.log('Shopping list sync failed (offline?)');
+    });
+  }
   return items;
 }
 
@@ -45,7 +78,13 @@ async function writeAll(items: ShoppingListItem[], options?: WriteOptions) {
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 const matchKey = (name: string, unit: string | null) => `${normalizeName(name)}|${unit ? normaliseUnit(unit).toLowerCase() : ''}`;
 
-/** Local-only running shopping list, built by appending recipe ingredients one recipe at a time. */
+/**
+ * Running shopping list, built by appending recipe ingredients one recipe at
+ * a time. Backed by a local AsyncStorage cache (read/written synchronously
+ * with every mutation, so the UI and the widget always have something to
+ * show offline) that's kept in sync with the server's shopping-note via
+ * `sync`/`applyRemote` — see ShoppingListContext for the WS/reconnect wiring.
+ */
 export const shoppingList = {
   getAll: readAll,
 
@@ -103,4 +142,37 @@ export const shoppingList = {
   },
 
   clearAll: async (): Promise<ShoppingListItem[]> => writeAll([]),
+
+  /** Adopts a { items, updatedAt } snapshot from the server without re-PUTing it back. */
+  applyRemote: async (items: ShoppingListItem[], updatedAt: string): Promise<ShoppingListItem[]> =>
+    writeAll(items, { skipServerSync: true, updatedAt }),
+
+  /**
+   * Reconciles local state against the server: called on mount and on every
+   * WS reconnect. Whichever side's updatedAt is newer wins — same
+   * last-writer-wins rule as recipe edit conflicts elsewhere in this app. A
+   * local change made while offline has a newer updatedAt than the stale
+   * server copy, so this pushes it instead of discarding it; a change made
+   * elsewhere (dashboard) while the phone was offline has a newer server
+   * updatedAt, so this adopts it instead.
+   */
+  sync: async (): Promise<ShoppingListItem[]> => {
+    const local = await readState();
+    try {
+      const remote = await api.getShoppingNote();
+      const remoteTime = new Date(remote.updatedAt).getTime();
+      const localTime = new Date(local.updatedAt).getTime();
+
+      if (remoteTime > localTime) {
+        return writeAll(remote.items, { skipServerSync: true, updatedAt: remote.updatedAt });
+      }
+      if (localTime > remoteTime) {
+        api.putShoppingNote(local).catch(() => {});
+      }
+      return local.items;
+    } catch {
+      console.log('Shopping list server unreachable, using local cache');
+      return local.items;
+    }
+  },
 };

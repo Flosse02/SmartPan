@@ -4,7 +4,7 @@ import { api } from '../api';
 import { localStore } from '../localStore';
 import { recipePrefs, RecipePrefs } from '../recipePrefs';
 import { Recipe } from '../types';
-import { useConfig } from '../context/ConfigContext';
+import { useSocket } from '../context/SocketContext';
 
 type RecipesContextType = {
   recipes: Recipe[];
@@ -47,10 +47,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [connected, setConnected] = useState(false);
-  const { config } = useConfig();
+  const { connected, subscribe, onConnect } = useSocket();
 
-  const wsRef = useRef<WebSocket | null>(null);
   const prefsRef = useRef<Record<string, RecipePrefs>>({});
 
   useEffect(() => {
@@ -77,87 +75,47 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!config) return;
-
-    let cancelled = false;
-    let reconnectTimer: ReturnType<typeof setTimeout>;
-
-    const connect = () => {
-      if (cancelled) return;
-
-      const url = `${config.wsUrl}/api/recipes/ws`;
-      console.log('[WS] connecting to', url);
-
-      const ws = new WebSocket(url);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        console.log('[WS] connected');
-        setConnected(true);
-
-        // Push anything created or edited while offline, then pull a fresh
-        // merged list so both this device and the dashboard end up in sync.
-        (async () => {
-          try {
-            await api.pushUnsyncedRecipes();
-            await api.pushPendingEdits();
-            const data = await api.getRecipes();
-            setRecipes(withPrefs(data, prefsRef.current));
-            prefetchImages(data);
-          } catch {
-            console.log('Reconnect sync failed, will retry next reconnect');
-          }
-        })();
-      };
-
-      ws.onclose = () => {
-        setConnected(false);
-        if (!cancelled) {
-          reconnectTimer = setTimeout(connect, 3000);
-        }
-      };
-
-      ws.onerror = () => ws.close();
-
-      ws.onmessage = (e) => {
-        console.log('[WS] message', e.data);
+    // Push anything created or edited while offline, then pull a fresh
+    // merged list so both this device and the dashboard end up in sync.
+    return onConnect(() => {
+      (async () => {
         try {
-          const msg = JSON.parse(e.data);
-
-          // id-based dedup: recipe ids are always the same server-issued
-          // UUID everywhere (phone, dashboard, this broadcast), so "does
-          // this id already exist in state?" is a reliable, simple guard
-          // against the echo of our own optimistic add showing up twice.
-          if (msg.type === 'recipe_added') {
-            setRecipes(prev =>
-              prev.some(r => r.id === msg.recipe.id)
-                ? prev
-                : [withPrefs([msg.recipe], prefsRef.current)[0], ...prev]
-            );
-          }
-
-          if (msg.type === 'recipe_updated') {
-            const updated = withPrefs([msg.recipe], prefsRef.current)[0];
-            setRecipes(prev => prev.map(r => (r.id === updated.id ? updated : r)));
-          }
-
-          if (msg.type === 'recipe_deleted') {
-            setRecipes(prev => prev.filter(r => r.id !== msg.id));
-          }
-        } catch (err) {
-          console.log('[WS] failed to parse message', err);
+          await api.pushUnsyncedRecipes();
+          await api.pushPendingEdits();
+          const data = await api.getRecipes();
+          setRecipes(withPrefs(data, prefsRef.current));
+          prefetchImages(data);
+        } catch {
+          console.log('Reconnect sync failed, will retry next reconnect');
         }
-      };
-    };
+      })();
+    });
+  }, [onConnect]);
 
-    connect();
+  useEffect(() => {
+    const unsubscribes = [
+      // id-based dedup: recipe ids are always the same server-issued UUID
+      // everywhere (phone, dashboard, this broadcast), so "does this id
+      // already exist in state?" is a reliable, simple guard against the
+      // echo of our own optimistic add showing up twice.
+      subscribe('recipe_added', (msg) => {
+        setRecipes(prev =>
+          prev.some(r => r.id === msg.recipe.id)
+            ? prev
+            : [withPrefs([msg.recipe], prefsRef.current)[0], ...prev]
+        );
+      }),
+      subscribe('recipe_updated', (msg) => {
+        const updated = withPrefs([msg.recipe], prefsRef.current)[0];
+        setRecipes(prev => prev.map(r => (r.id === updated.id ? updated : r)));
+      }),
+      subscribe('recipe_deleted', (msg) => {
+        setRecipes(prev => prev.filter(r => r.id !== msg.id));
+      }),
+    ];
 
-    return () => {
-      cancelled = true;
-      clearTimeout(reconnectTimer);
-      wsRef.current?.close();
-    };
-  }, [config]);
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, [subscribe]);
 
   useEffect(() => {
     refresh();

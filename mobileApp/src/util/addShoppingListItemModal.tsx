@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import { shoppingList, ShoppingListItem } from '../shoppingList';
+import { useShoppingList } from '../context/ShoppingListContext';
 import { useTheme } from '../theme/Themecontext';
 
 type AddShoppingListItemModalProps = {
   visible: boolean;
   onClose: () => void;
-  // Only needed by screens that already keep their own copy of the list in
-  // state (e.g. ShoppingListScreen) and want it to update immediately
-  // without waiting for a refocus/AppState refresh.
-  onAdded?: (items: ShoppingListItem[]) => void;
 };
 
 const EMPTY_ITEM = { amount: '', unit: '', name: '' };
@@ -20,10 +16,11 @@ const EMPTY_ITEM = { amount: '', unit: '', name: '' };
  * to the Shopping List screen first — it stays mounted and just toggles
  * `visible`, same pattern as ShoppingListPickerModal.
  */
-export function AddShoppingListItemModal({ visible, onClose, onAdded }: AddShoppingListItemModalProps) {
+export function AddShoppingListItemModal({ visible, onClose }: AddShoppingListItemModalProps) {
   const { colours } = useTheme();
   const s = createStyles(colours);
   const [newItem, setNewItem] = useState(EMPTY_ITEM);
+  const { addIngredients } = useShoppingList();
 
   // Reset the form on each open — the modal stays mounted between uses
   // rather than remounting, so this can't just be initial state.
@@ -33,7 +30,7 @@ export function AddShoppingListItemModal({ visible, onClose, onAdded }: AddShopp
 
   const confirm = async () => {
     if (!newItem.name.trim()) return;
-    const items = await shoppingList.addIngredients(
+    await addIngredients(
       [{
         amount: newItem.amount.trim() ? parseFloat(newItem.amount) : 1,
         unit: newItem.unit.trim() || null,
@@ -41,7 +38,6 @@ export function AddShoppingListItemModal({ visible, onClose, onAdded }: AddShopp
       }],
       'Manually added'
     );
-    onAdded?.(items);
     onClose();
   };
 

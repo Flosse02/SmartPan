@@ -3,6 +3,14 @@ import { localStore } from './localStore';
 import ENV from './constants/ENV';
 import { getApiBaseUrl } from './config/apiConfig';
 import { normaliseUnit } from './util/cleanIngridents';
+// Type-only — see shoppingList.ts's own comment on the api.ts import for why
+// this doesn't create a circular require.
+import type { ShoppingListItem } from './shoppingList';
+
+export interface ShoppingNote {
+  items: ShoppingListItem[];
+  updatedAt: string;
+}
 
 const RETRY_BASE_DELAY_MS = 5_000;
 const RETRY_MAX_DELAY_MS = 5 * 60_000;
@@ -657,4 +665,15 @@ export const api = {
       tags: data.dishTypes ?? [],
     };
   },
+
+  // The whole shopping note is replaced on every PUT (no server-side diffing),
+  // so callers must always send the complete current { items, updatedAt } —
+  // never a partial patch.
+  getShoppingNote: async (): Promise<ShoppingNote> => req('/api/shopping-note'),
+
+  putShoppingNote: async (note: ShoppingNote): Promise<ShoppingNote> =>
+    req('/api/shopping-note', {
+      method: 'PUT',
+      body: JSON.stringify(note),
+    }),
 };

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'rea
 import { Recipe } from '../types';
 import { ICONS } from '../constants/icons';
 import { useTheme } from '../theme/Themecontext';
-import { shoppingList } from '../shoppingList';
+import { useShoppingList } from '../context/ShoppingListContext';
 import { scaleAmount } from './cleanIngridents';
 import { alert } from './alertStore';
 
@@ -29,6 +29,7 @@ export function ShoppingListPickerModal({ recipe, visible, onClose, servings }: 
   const effectiveServings = servings ?? recipe.servings;
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const {as: TickIcon, name: tickIcon} = ICONS.TICK;
+  const { addIngredients } = useShoppingList();
 
   useEffect(() => {
     if (visible) {
@@ -54,7 +55,7 @@ export function ShoppingListPickerModal({ recipe, visible, onClose, servings }: 
       }));
     onClose();
     if (items.length === 0) return;
-    await shoppingList.addIngredients(items, recipe.title);
+    await addIngredients(items, recipe.title);
     alert('Added to shopping list', `${items.length} ingredient${items.length === 1 ? '' : 's'} added.`);
   };
 
